@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
-
-#include <Windows.h>
+#include <string>
 
 struct employee 
 {
@@ -18,13 +17,15 @@ int main(int argc, char** argv)
 	out_stream.write((char*)(&employee_count), sizeof(employee_count));
 
 	employee temp_employee;
+	std::string temp_string;
 	while (employee_count > 0) 
 	{
 		std::cout << "Enter employee ID: ";
 		std::cin >> temp_employee.num;
 		std::cout << "Enter employee name: ";
-		memset(temp_employee.name, 0, 10);
-		fgets(temp_employee.name, 10, stdin);
+		std::cin.ignore();
+		std::getline(std::cin, temp_string);
+		strcpy_s(temp_employee.name, temp_string.c_str());
 		std::cout << "Enter employee hours: ";
 		std::cin >> temp_employee.hours;
 		out_stream.write((char*)(&temp_employee), sizeof(temp_employee));

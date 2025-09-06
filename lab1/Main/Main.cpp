@@ -2,8 +2,8 @@
 #include <string>
 #include <fstream>
 
+#include <windows.h>
 #include <stringapiset.h>
-#include <Windows.h>
 
 struct employee
 {
@@ -14,6 +14,8 @@ struct employee
 
 int main(int argc, char** argv) 
 {
+	size_t number_of_chars_converted;
+
 	std::string binary_file_name;
 	size_t employee_count;
 
@@ -26,8 +28,8 @@ int main(int argc, char** argv)
 		= "Creator.exe "
 		+ binary_file_name + ' '
 		+ std::to_string(employee_count);
-	LPWSTR command_line_w = new WCHAR[command_line.length()];
-	mbstowcs(command_line_w, command_line.c_str(), command_line.length());
+	LPWSTR command_line_w = new WCHAR[command_line.length() + 1];
+	mbstowcs_s(&number_of_chars_converted, command_line_w, command_line.length() + 1, command_line.c_str(), command_line.length());
 
 	STARTUPINFO si;
 	PROCESS_INFORMATION creator_process_info;
@@ -46,7 +48,7 @@ int main(int argc, char** argv)
 
 	std::ifstream binary_file(binary_file_name, std::ios::binary | std::ios::in);
 	binary_file.read((char*)(&employee_count), sizeof(employee_count));
-	std::cout << employee_count;
+	std::cout << employee_count << '\n';
 	employee temp_employee;
 	for (size_t i = 0; i < employee_count; i++) 
 	{
@@ -71,11 +73,8 @@ int main(int argc, char** argv)
 		+ binary_file_name + ' '
 		+ report_file_name + ' '
 		+ std::to_string(hourly_payment);
-	command_line_w = new WCHAR[command_line.length()];
-	mbstowcs(command_line_w, command_line.c_str(), command_line.length());
-	
-	STARTUPINFO si;
-	PROCESS_INFORMATION creator_process_info;
+	command_line_w = new WCHAR[command_line.length() + 1];
+	mbstowcs_s(&number_of_chars_converted, command_line_w, command_line.length() + 1, command_line.c_str(), command_line.length());
 
 	ZeroMemory(&si, sizeof(STARTUPINFO));
 	si.cb = sizeof(STARTUPINFO);

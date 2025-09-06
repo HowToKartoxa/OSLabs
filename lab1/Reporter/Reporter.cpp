@@ -2,8 +2,6 @@
 #include <fstream>
 #include <algorithm>
 
-#include <Windows.h>
-
 struct employee
 {
 	int num;
@@ -15,7 +13,7 @@ int main(int argc, char** argv)
 {
 	std::ifstream in_stream(argv[1], std::ios::binary | std::ios::in);
 	std::ofstream out_stream(argv[2], std::ios::out);
-	double hourly_payment = std::atof(argv[3]);
+	float hourly_payment = std::atof(argv[3]);
 
 	size_t employee_count;
 	in_stream.read((char*)(&employee_count), sizeof(employee_count));
