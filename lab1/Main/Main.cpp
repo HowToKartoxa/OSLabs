@@ -40,11 +40,10 @@ int main(int argc, char** argv)
 	CreateProcess(NULL, command_line_w, NULL, NULL, FALSE,
 		CREATE_NEW_CONSOLE, NULL, NULL, &si, &creator_process_info);
 
-	delete command_line_w;
-
 	WaitForSingleObject(creator_process_info.hProcess, INFINITE);
 	CloseHandle(creator_process_info.hThread);
 	CloseHandle(creator_process_info.hProcess);
+	delete[] command_line_w;
 
 	std::ifstream binary_file(binary_file_name, std::ios::binary | std::ios::in);
 	binary_file.read((char*)(&employee_count), sizeof(employee_count));
@@ -64,6 +63,7 @@ int main(int argc, char** argv)
 	float hourly_payment;
 
 	std::cout << "Enter report file name: ";
+	std::cin.ignore();
 	std::getline(std::cin, report_file_name);
 	std::cout << "Enter hourly payment ammount: ";
 	std::cin >> hourly_payment;
@@ -82,18 +82,19 @@ int main(int argc, char** argv)
 	CreateProcess(NULL, command_line_w, NULL, NULL, FALSE,
 		CREATE_NEW_CONSOLE, NULL, NULL, &si, &creator_process_info);
 
-	delete command_line_w;
-
 	WaitForSingleObject(creator_process_info.hProcess, INFINITE);
 	CloseHandle(creator_process_info.hThread);
 	CloseHandle(creator_process_info.hProcess);
+	delete[] command_line_w;
 
 	std::ifstream report_file(report_file_name, std::ios::in);
 	char temp;
-	while (std::cin >> std::noskipws >> temp) 
+	while (report_file >> std::noskipws >> temp) 
 	{
 		std::cout << temp;
 	}
+
+	system("pause");
 
 	return 0;
 }

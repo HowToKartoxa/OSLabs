@@ -26,7 +26,7 @@ int main(int argc, char** argv)
 	}
 	in_stream.close();
 
-	std::sort(employees, employees + employee_count, [](employee a, employee b) {return strcmp(a.name, b.name); });
+	std::sort(employees, employees + employee_count, [](employee a, employee b) {return strcmp(a.name, b.name) < 0; });
 
 	out_stream
 		<< "Report for " << argv[1] << ":\n"
