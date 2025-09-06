@@ -37,7 +37,7 @@ int main(int argc, char** argv)
 	ZeroMemory(&si, sizeof(STARTUPINFO));
 	si.cb = sizeof(STARTUPINFO);
 	
-	CreateProcess(NULL, command_line_w, NULL, NULL, FALSE,
+	CreateProcessW(NULL, command_line_w, NULL, NULL, FALSE,
 		CREATE_NEW_CONSOLE, NULL, NULL, &si, &creator_process_info);
 
 	WaitForSingleObject(creator_process_info.hProcess, INFINITE);
@@ -79,7 +79,7 @@ int main(int argc, char** argv)
 	ZeroMemory(&si, sizeof(STARTUPINFO));
 	si.cb = sizeof(STARTUPINFO);
 
-	CreateProcess(NULL, command_line_w, NULL, NULL, FALSE,
+	CreateProcessW(NULL, command_line_w, NULL, NULL, FALSE,
 		CREATE_NEW_CONSOLE, NULL, NULL, &si, &creator_process_info);
 
 	WaitForSingleObject(creator_process_info.hProcess, INFINITE);

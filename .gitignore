@@ -5,3 +5,4 @@
 *.user
 lab1/*/x64
 lab1/x64
+lab1/build
