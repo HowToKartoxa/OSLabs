@@ -28,22 +28,19 @@ int main(int argc, char** argv)
 		= "Creator.exe "
 		+ binary_file_name + ' '
 		+ std::to_string(employee_count);
-	LPWSTR command_line_w = new WCHAR[command_line.length() + 1];
-	mbstowcs_s(&number_of_chars_converted, command_line_w, command_line.length() + 1, command_line.c_str(), command_line.length());
 
-	STARTUPINFO si;
+	STARTUPINFOA si;
 	PROCESS_INFORMATION creator_process_info;
 
-	ZeroMemory(&si, sizeof(STARTUPINFO));
-	si.cb = sizeof(STARTUPINFO);
+	ZeroMemory(&si, sizeof(STARTUPINFOA));
+	si.cb = sizeof(STARTUPINFOA);
 	
-	CreateProcessW(NULL, command_line_w, NULL, NULL, FALSE,
+	CreateProcessA(NULL, (LPSTR)command_line.c_str(), NULL, NULL, FALSE,
 		CREATE_NEW_CONSOLE, NULL, NULL, &si, &creator_process_info);
 
 	WaitForSingleObject(creator_process_info.hProcess, INFINITE);
 	CloseHandle(creator_process_info.hThread);
 	CloseHandle(creator_process_info.hProcess);
-	delete[] command_line_w;
 
 	std::ifstream binary_file(binary_file_name, std::ios::binary | std::ios::in);
 	binary_file.read((char*)(&employee_count), sizeof(employee_count));
@@ -73,19 +70,16 @@ int main(int argc, char** argv)
 		+ binary_file_name + ' '
 		+ report_file_name + ' '
 		+ std::to_string(hourly_payment);
-	command_line_w = new WCHAR[command_line.length() + 1];
-	mbstowcs_s(&number_of_chars_converted, command_line_w, command_line.length() + 1, command_line.c_str(), command_line.length());
 
-	ZeroMemory(&si, sizeof(STARTUPINFO));
-	si.cb = sizeof(STARTUPINFO);
+	ZeroMemory(&si, sizeof(STARTUPINFOA));
+	si.cb = sizeof(STARTUPINFOA);
 
-	CreateProcessW(NULL, command_line_w, NULL, NULL, FALSE,
+	CreateProcessA(NULL, (LPSTR)command_line.c_str(), NULL, NULL, FALSE,
 		CREATE_NEW_CONSOLE, NULL, NULL, &si, &creator_process_info);
 
 	WaitForSingleObject(creator_process_info.hProcess, INFINITE);
 	CloseHandle(creator_process_info.hThread);
 	CloseHandle(creator_process_info.hProcess);
-	delete[] command_line_w;
 
 	std::ifstream report_file(report_file_name, std::ios::in);
 	char temp;
