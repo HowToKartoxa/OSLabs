@@ -1,0 +1,227 @@
+#ifndef INPUT_PARSING_H_
+#define INPUT_PARSING_H_
+
+// This is header-only to make solution structure simpler
+// Maybe regex would have been better
+
+#include <iostream>
+#include <string>
+#include <stdexcept>
+
+const char kForbiddenFileNameCharacters[12] = "<>|\\/:\"?*\t\n";
+const char kForbiddenFileNames3[4][4] = { "CON", "PRN", "AUX", "NUL" };
+const char kForbiddenFileNames4[18][5] = { "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" };
+
+bool CheckFileName(std::string file_name, std::string required_postfix = "", bool verbose = true)
+{
+	if (required_postfix != "")
+	{
+		if (file_name.length() < required_postfix.length() ||
+			file_name.substr(file_name.length() - required_postfix.length(), required_postfix.length()) != required_postfix)
+		{
+			if (verbose) std::cout << "File name must contain " << required_postfix << " postfix!\n";
+			return false;
+		}
+	}
+	if (file_name.empty())
+	{
+		if (verbose) std::cout << "File name cannot be empty!\n";
+		return false;
+	}
+	else if (file_name.length() > 255)
+	{
+		if (verbose) std::cout << "File name cannot be more than 255 characters long!\n";
+		return false;
+	}
+	else if (size_t temp_index = file_name.find_first_of(kForbiddenFileNameCharacters) != std::string::npos)
+	{
+		if (file_name[temp_index] == '\n' || file_name[temp_index] == '\t')
+		{
+			if (verbose) std::cout << "File name cannot contain \\t or \\n charachters!\n";
+			return false;
+		}
+		else
+		{
+			if (verbose) std::cout << "File name cannot contain " << file_name[temp_index] << " character!\n";
+			return false;
+		}
+	}
+	else
+	{
+		if (file_name.length() == 3)
+		{
+			for (int i = 0; i < 4; i++)
+			{
+				if (file_name == kForbiddenFileNames3[i])
+				{
+					if (verbose) std::cout << "File name " << file_name << " not allowed!\n";
+					return false;
+				}
+			}
+		}
+		else if (file_name.length() == 4)
+		{
+			for (int i = 0; i < 18; i++)
+			{
+				if (file_name == kForbiddenFileNames4[i])
+				{
+					if (verbose) std::cout << "File name " << file_name << " not allowed!\n";
+					return false;
+				}
+			}
+		}
+		if (file_name[file_name.length() - 1] == ' ' || file_name[file_name.length() - 1] == '.')
+		{
+			if (verbose) std::cout << "File name cannot end with " << file_name[file_name.length() - 1] << " character!\n";
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+}
+
+bool CheckIfSizeT(std::string str, bool verbose = true)
+{
+	std::string size_max_str = std::to_string(SIZE_MAX);
+	if (str.length() == 0) 
+	{
+		if (verbose) std::cout << "Not a number!\n";
+		return false;
+	}
+	else if (str[0] == '-')
+	{
+		if (str.length() == 1)
+		{
+			if (verbose) std::cout << "Not a number!\n";
+			return false;
+		}
+		if (verbose) std::cout << "Enter a positive number!\n";
+		return false;
+	}
+	else if (str.length() > size_max_str.length())
+	{
+		if (verbose) std::cout << "Enter a smaller number!\n";
+		return false;
+	}
+	else if (str.length() == size_max_str.length())
+	{
+		for (size_t i = 0; i < str.length(); i++)
+		{
+			if (!isdigit(str[i]))
+			{
+				if (verbose) std::cout << "Not an integer number!\n";
+				return false;
+			}
+			else if (str[i] > size_max_str[i])
+			{
+				if (verbose) std::cout << "Enter a smaller number!\n";
+				return false;
+			}
+		}
+		return true;
+	}
+	else
+	{
+		for (size_t i = 0; i < str.length(); i++)
+		{
+			if (!isdigit(str[i]))
+			{
+				if (verbose) std::cout << "Not an integer number!\n";
+				return false;
+			}
+		}
+		return true;
+	}
+}
+
+bool CheckIfInt(std::string str, bool verbose = true)
+{
+	std::string int_max_str = std::to_string(INT_MAX);
+	if (str.length() == 0)
+	{
+		if (verbose) std::cout << "Not a number!\n";
+		return false;
+	}
+	else if (str[0] == '-') 
+	{
+		if (str.length() == 1) 
+		{
+			if (verbose) std::cout << "Not a number!\n";
+			return false;
+		}
+		str.erase(0, 1);
+	}
+	if (str.length() > int_max_str.length()) 
+	{
+		if (verbose) std::cout << "Enter a smaller number!\n";
+		return false;
+	}
+	else if (str.length() == int_max_str.length()) 
+	{
+		for (size_t i = 0; i < str.length(); i++)
+		{
+			if (!isdigit(str[i]))
+			{
+				if (verbose) std::cout << "Not an integer number!\n";
+				return false;
+			}
+			else if (str[i] > int_max_str[i])
+			{
+				if (verbose) std::cout << "Enter a smaller number!\n";
+				return false;
+			}
+		}
+		return true;
+	}
+	else 
+	{
+		for (size_t i = 0; i < str.length(); i++)
+		{
+			if (!isdigit(str[i]))
+			{
+				if (verbose) std::cout << "Not a number!\n";
+				return false;
+			}
+		}
+		return true;
+	}
+}
+
+size_t StringToSizeT(std::string str)
+{
+	size_t result = 0;
+	for (int i = 0; i < str.length(); i++)
+	{
+		result *= 10;
+		result += str[i] - '0';
+	}
+	return result;
+}
+
+bool CheckIfDouble(std::string str, bool verbose = true)
+{
+	if (str.length() == 0)
+	{
+		if (verbose) std::cout << "Not a number!\n";
+		return false;
+	}
+	else if (str[0] == '-' && str.length() == 1)
+	{
+		if (verbose) std::cout << "Not a number!\n";
+		return false;
+	}
+	try 
+	{
+		std::stod(str);
+	}
+	catch (...) 
+	{
+		if (verbose) std::cout << "Not a double (extended floating point) number!\n";
+		return false;
+	}
+	return true;
+}
+
+#endif

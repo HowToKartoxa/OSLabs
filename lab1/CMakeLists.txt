@@ -1,16 +1,19 @@
-cmake_minimum_required(VERSION 3.10..3.24)
-
-project(lab1)
+cmake_minimum_required(VERSION 3.12)
+project(Lab1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if(WIN32)
-	add_executable(Main Main/main.cpp)
-	add_executable(Creator Creator/creator.cpp)
-	add_executable(Reporter Reporter/reporter.cpp)
-else()
-	message("Cannot build for this OS. Project is incompatible with this one, sorry...")
-endif()
+include_directories(/Dependencies/include/utils)
+
+add_executable(Creator Creator/Creator.cpp)
+target_link_libraries(Creator user32 gdi32 kernel32 advapi32)
+
+add_executable(Reporter Reporter/Reporter.cpp)
+target_link_libraries(Reporter user32 gdi32 kernel32 advapi32)
+
+add_executable(Main Main/Main.cpp)
+target_link_libraries(Main user32 gdi32 kernel32 advapi32)
 
 
 

@@ -6,3 +6,5 @@
 lab1/*/x64
 lab1/x64
 lab1/build
+lab1/dependencies/include/gtest
+lab1/dependencies/lib
