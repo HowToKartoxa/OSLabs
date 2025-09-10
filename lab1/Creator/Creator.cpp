@@ -5,8 +5,6 @@
 #include <fstream>
 #include <string>
 
-#include <windows.h>
-
 int main(int argc, char** argv) 
 {
 	std::cout << "Creator utility\nUsage: Creator [result_binary_file_name] [binary_file_entry_count]\n";
