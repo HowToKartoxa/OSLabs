@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cstring>
 
 int main(int argc, char** argv) 
 {
