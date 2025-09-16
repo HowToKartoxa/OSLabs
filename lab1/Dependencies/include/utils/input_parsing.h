@@ -139,6 +139,7 @@ bool CheckIfSizeT(std::string str, bool verbose = true)
 bool CheckIfInt(std::string str, bool verbose = true)
 {
 	std::string int_max_str = std::to_string(INT_MAX);
+	bool is_negative = false;
 	if (str.length() == 0)
 	{
 		if (verbose) std::cout << "Not a number!\n";
@@ -152,6 +153,7 @@ bool CheckIfInt(std::string str, bool verbose = true)
 			return false;
 		}
 		str.erase(0, 1);
+		is_negative = true;
 	}
 	if (str.length() > int_max_str.length()) 
 	{
@@ -167,7 +169,7 @@ bool CheckIfInt(std::string str, bool verbose = true)
 				if (verbose) std::cout << "Not an integer number!\n";
 				return false;
 			}
-			else if (str[i] > int_max_str[i])
+			else if (str[i] > int_max_str[i] && !(i == int_max_str.length() - 1 && is_negative))
 			{
 				if (verbose) std::cout << "Enter a smaller number!\n";
 				return false;
@@ -202,7 +204,7 @@ size_t StringToSizeT(std::string str)
 
 bool CheckIfDouble(std::string str, bool verbose = true)
 {
-	if (str.length() == 0)
+	if (str.empty())
 	{
 		if (verbose) std::cout << "Not a number!\n";
 		return false;
