@@ -4,6 +4,9 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cstring>
+#include <string.h>
+#include <cstdlib>
 
 int main(int argc, char** argv) 
 {

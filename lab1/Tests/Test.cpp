@@ -7,8 +7,7 @@ TEST(InputParsingTest, FileNameEmpty) {
 }
 
 TEST(InputParsingTest, FileNameTooLong) {
-    std::string long_name(256, 'a');
-    EXPECT_EQ(CheckFileName(long_name, "", false), false);
+    EXPECT_EQ(CheckFileName("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "", false), false);
 }
 
 TEST(InputParsingTest, FileNameForbidden3CharsLong) {
