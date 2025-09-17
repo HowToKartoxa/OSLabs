@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <stdexcept>
+#include <cctype>
 
 const char kForbiddenFileNameCharacters[12] = "<>|\\/:\"?*\t\n";
 const char kForbiddenFileNames3[4][4] = { "CON", "PRN", "AUX", "NUL" };

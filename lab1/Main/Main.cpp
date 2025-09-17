@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <cstdlib>
 
 #include <windows.h>
 
@@ -11,7 +12,6 @@ int main(int argc, char** argv)
 {
 	DWORD process_exit_code;
 
-	CheckIfInt(std::to_string(INT_MIN));
 	std::string binary_file_name;
 	std::string employee_count_str;
 
