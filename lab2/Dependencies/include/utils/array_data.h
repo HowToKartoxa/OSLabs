@@ -17,6 +17,11 @@ struct ArrayData
 	{
 		data = new int[size];
 	}
+
+	int& operator[](const size_t& index) 
+	{
+		return data[index];
+	}
 };
 
 

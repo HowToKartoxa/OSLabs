@@ -1,4 +1,4 @@
-#include <utils/ArrayData.h>
+#include <utils/array_data.h>
 
 #include <iostream>
 
@@ -6,24 +6,24 @@
 
 DWORD WINAPI MinMax(LPVOID args) 
 {
-	ArrayData* array = reinterpret_cast<ArrayData*>(args);
+	ArrayData& array = *reinterpret_cast<ArrayData*>(args);
 
-	size_t min = array->data[0];
-	size_t max = array->data[0];
+	size_t min = array[0];
+	size_t max = array[0];
 
-	for (size_t i = 0; i < array->size; i++) 
+	for (size_t i = 0; i < array.size; i++) 
 	{
-		if (array->data[i] > max) 
+		if (array[i] > max) 
 		{
 			Sleep(7);
-			max = array->data[i];
-			array->max_index = i;
+			max = array[i];
+			array.max_index = i;
 		}
-		if (array->data[i] < min)
+		if (array[i] < min)
 		{
 			Sleep(7);
-			min = array->data[i];
-			array->min_index = i;
+			min = array[i];
+			array.min_index = i;
 		}
 	}
 
@@ -32,17 +32,17 @@ DWORD WINAPI MinMax(LPVOID args)
 
 DWORD WINAPI Average(LPVOID args)
 {
-	ArrayData* array = reinterpret_cast<ArrayData*>(args);
+	ArrayData& array = *reinterpret_cast<ArrayData*>(args);
 
 	size_t sum = 0;
 
-	for (size_t i = 0; i < array->size; i++) 
+	for (size_t i = 0; i < array.size; i++) 
 	{
-		sum += array->data[i];
+		sum += array[i];
 		Sleep(12);
 	}
 
-	array->average = sum / array->size;
+	array.average = sum / array.size;
 
 	return 0;
 }
@@ -57,7 +57,7 @@ int main(int argc, char** argv)
 	std::cout << "Enter array elements:\n";
 	for (size_t i = 0; i < size; i++) 
 	{
-		std::cin >> array.data[i];
+		std::cin >> array[i];
 	}
 
 	HANDLE handles[2];
@@ -76,12 +76,12 @@ int main(int argc, char** argv)
 		return GetLastError();
 	}
 
-	array.data[array.min_index] = array.average;
-	array.data[array.max_index] = array.average;
+	array[array.min_index] = array.average;
+	array[array.max_index] = array.average;
 
 	std::cout << '\n';
 	for (size_t i = 0; i < size; i++) 
 	{
-		std::cout << array.data[i] << ' ';
+		std::cout << array[i] << ' ';
 	}
 }
