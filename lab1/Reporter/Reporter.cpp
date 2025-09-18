@@ -7,6 +7,7 @@
 #include <cstring>
 #include <cstdlib>
 
+
 int main(int argc, char** argv)
 {
 	std::cout << "Reporter utility\nUsage: Reporter [source_binary_file_name] [result_txt_file_name] [hourly_payment_ammount]\n";
