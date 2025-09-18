@@ -1,8 +1,13 @@
 #include <utils/array_data.h>
+#include <utils/input_parsing.h>
 
 #include <iostream>
+#include <string>
+#include <limits>
 
 #include <windows.h>
+
+#undef max()
 
 DWORD WINAPI MinMax(LPVOID args) 
 {
@@ -50,14 +55,45 @@ DWORD WINAPI Average(LPVOID args)
 int main(int argc, char** argv) 
 {
 	size_t size;
+	std::string temp_string;
+
 	std::cout << "Enter array size:\n";
-	std::cin >> size;
+	std::getline(std::cin, temp_string);
+	while (!CheckIfSizeT(temp_string)) 
+	{
+		std::cout << "Enter array size:\n";
+		std::getline(std::cin, temp_string);
+	}
+
+	size = StringToSizeT(temp_string);
 
 	ArrayData array(size);
-	std::cout << "Enter array elements:\n";
-	for (size_t i = 0; i < size; i++) 
+	char temp_char;
+	bool invalid_data_entered = false;
+
+	while (true) 
 	{
-		std::cin >> array[i];
+		std::cout << "Enter array elements:\n";
+		for (size_t i = 0; i < size && !invalid_data_entered; i++)
+		{
+			std::cin >> array[i];
+			if (std::cin.fail())
+			{
+				std::cin.clear();
+				std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+				std::cout << "Invalid data entered!\n";
+				invalid_data_entered = true;
+				break;
+			}
+		}
+		if (invalid_data_entered) 
+		{ 
+			invalid_data_entered = false; 
+		}
+		else 
+		{
+			break;
+		}
 	}
 
 	HANDLE handles[2];
