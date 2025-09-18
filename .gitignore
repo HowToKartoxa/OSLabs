@@ -3,8 +3,15 @@
 *.vcxproj
 *.filters
 *.user
+
 lab1/*/x64
 lab1/x64
 lab1/build
 lab1/dependencies/include/gtest
 lab1/dependencies/lib
+
+lab2/*/x64
+lab2/x64
+lab2/build
+lab2/dependencies/include/gtest
+lab2/dependencies/lib
