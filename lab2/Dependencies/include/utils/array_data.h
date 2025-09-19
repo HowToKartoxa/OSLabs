@@ -24,5 +24,4 @@ struct ArrayData
 	}
 };
 
-
 #endif

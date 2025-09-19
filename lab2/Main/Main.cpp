@@ -1,5 +1,6 @@
 #include <utils/array_data.h>
 #include <utils/input_parsing.h>
+#include <utils/array_algorithms.h>
 
 #include <iostream>
 #include <string>
@@ -68,7 +69,6 @@ int main(int argc, char** argv)
 	size = StringToSizeT(temp_string);
 
 	ArrayData array(size);
-	char temp_char;
 	bool invalid_data_entered = false;
 
 	while (true) 
@@ -101,15 +101,29 @@ int main(int argc, char** argv)
 	DWORD id_average;
 
 	handles[0] = CreateThread(NULL, 0, MinMax, reinterpret_cast<LPVOID*>(&array), 0, &id_minmax);
-	if (handles[0] == NULL)
-		return GetLastError();
+	if (handles[0] == NULL) 
+	{
+		DWORD error = GetLastError();
+		std::cout << "Failed to create MinMax process with code " << error << " !\n";
+		std::system("pause");
+		return error;
+	}
+
 	handles[1] = CreateThread(NULL, 0, Average, reinterpret_cast<LPVOID*>(&array), 0, &id_average);
-	if (handles[1] == NULL)
-		return GetLastError();
+	if (handles[1] == NULL) 
+	{
+		DWORD error = GetLastError();
+		std::cout << "Failed to create Average process with code " << error << " !\n";
+		std::system("pause");
+		return error;
+	}
 
 	if (WaitForMultipleObjects(2, handles, TRUE, INFINITE) == WAIT_FAILED)
 	{
-		return GetLastError();
+		DWORD error = GetLastError();
+		std::cout << "One of the processes failed to finish with code " << error << " !\n";
+		std::system("pause");
+		return error;
 	}
 
 	array[array.min_index] = array.average;
