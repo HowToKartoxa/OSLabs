@@ -1,0 +1,11 @@
+You can choose the standard to use (winapi or std::thread) for threading when building with cmake.
+To do it, add an option to cmake utility call. For example:
+
+cmake -DUSE_STD_THREAD=ON ..
+^This command will instruct cmake to build with std::thread
+
+cmake -DUSE_WINAPI=ON ..
+^This command will instruct cmake to build with winapi
+
+cmake ..
+^By default, cmake will build this project with winapi (if on windows, in case you are building on Linux, the default option is std::thread).
