@@ -42,8 +42,8 @@ TEST_CASE("MinMax single element", "[MinMax]")
     MinMax(&arr);
 
     REQUIRE(arr.min_index == arr.max_index);
-    REQUIRE(arr.max_index != 0);
-    REQUIRE(arr.min_index != 0);
+    REQUIRE(arr.max_index == 0);
+    REQUIRE(arr.min_index == 0);
 }
 
 TEST_CASE("Average regular", "[Average]") 
