@@ -31,7 +31,6 @@ elseif(USE_STD_THREAD)
 endif()
 
 add_executable(Main Main/Main.cpp)
-add_executable(Tests Tests/Tests.cpp)
 
 if(USE_WINAPI)
 	target_link_libraries(Main PRIVATE kernel32)
@@ -48,5 +47,12 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(Catch2)
+
+add_executable(Tests Tests/Tests.cpp)
+
+list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+include(CTest)
+include(Catch)
+catch_discover_tests(Tests)
 
 target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain)

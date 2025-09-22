@@ -13,5 +13,5 @@ lab1/dependencies/lib
 lab2/*/x64
 lab2/x64
 lab2/build
-lab2/dependencies/include/gtest
+lab2/dependencies/include/catch2
 lab2/dependencies/lib
