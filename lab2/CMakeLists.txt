@@ -8,7 +8,7 @@ include_directories(Dependencies/include)
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
-option(USE_WINAPI "Use winapi for threading" ON)
+option(USE_WINAPI "Use winapi for threading" OFF)
 option(USE_STD_THREAD "Use thread (std::thread) for threading" OFF)
 
 if(USE_STD_THREAD)

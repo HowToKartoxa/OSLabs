@@ -1,4 +1,4 @@
-You can choose the standart to use (winapi or std::thread) for threading when building with cmake.
+You can choose the standard to use (winapi or std::thread) for threading when building with cmake.
 To do it, add an option to cmake utility call. For example:
 
 cmake -DUSE_STD_THREAD=ON ..
