@@ -1,3 +1,9 @@
+#if not defined(USE_WINAPI) && not defined(USE_STD_THREAD)
+
+#define USE_WINAPI
+
+#endif
+
 #include <utils/array_data.h>
 #include <utils/input_parsing.h>
 #include <utils/array_algorithms.h>
@@ -6,52 +12,17 @@
 #include <string>
 #include <limits>
 
+#if defined (USE_WINAPI)
+
 #include <windows.h>
 
+#elif defined (USE_STD_THREAD)
+
+#include <thread>
+
+#endif
+
 #undef max()
-
-DWORD WINAPI MinMax(LPVOID args) 
-{
-	ArrayData& array = *reinterpret_cast<ArrayData*>(args);
-
-	size_t min = array[0];
-	size_t max = array[0];
-
-	for (size_t i = 0; i < array.size; i++) 
-	{
-		if (array[i] > max) 
-		{
-			Sleep(7);
-			max = array[i];
-			array.max_index = i;
-		}
-		if (array[i] < min)
-		{
-			Sleep(7);
-			min = array[i];
-			array.min_index = i;
-		}
-	}
-
-	return 0;
-}
-
-DWORD WINAPI Average(LPVOID args)
-{
-	ArrayData& array = *reinterpret_cast<ArrayData*>(args);
-
-	size_t sum = 0;
-
-	for (size_t i = 0; i < array.size; i++) 
-	{
-		sum += array[i];
-		Sleep(12);
-	}
-
-	array.average = sum / array.size;
-
-	return 0;
-}
 
 int main(int argc, char** argv) 
 {
@@ -96,6 +67,8 @@ int main(int argc, char** argv)
 		}
 	}
 
+#if defined (USE_WINAPI)
+
 	HANDLE handles[2];
 	DWORD id_minmax;
 	DWORD id_average;
@@ -121,10 +94,38 @@ int main(int argc, char** argv)
 	if (WaitForMultipleObjects(2, handles, TRUE, INFINITE) == WAIT_FAILED)
 	{
 		DWORD error = GetLastError();
-		std::cout << "One of the processes failed to finish with code " << error << " !\n";
+		std::cout << "Processes failed to finish with code " << error << " !\n";
 		std::system("pause");
 		return error;
 	}
+
+#elif defined (USE_STD_THREAD)
+
+	try 
+	{
+		std::thread min_max_thread(MinMax, &array);
+		min_max_thread.join();
+	}
+	catch (const std::system_error e) 
+	{
+		std::cout << "Failed to create MinMax process with error\n" << e.what();
+		std::system("pause");
+		return 1;
+	}
+
+	try
+	{
+		std::thread average_thread(Average, &array);
+		average_thread.join();
+	}
+	catch (const std::system_error e)
+	{
+		std::cout << "Failed to create Average process with error\n" << e.what();
+		std::system("pause");
+		return 1;
+	}
+
+#endif
 
 	array[array.min_index] = array.average;
 	array[array.max_index] = array.average;

@@ -7,7 +7,7 @@ struct ArrayData
 	size_t size;
 	size_t min_index;
 	size_t max_index;
-	long long average;
+	int average;
 
 	ArrayData(size_t _size) : 
 		size(_size), 
@@ -21,6 +21,11 @@ struct ArrayData
 	int& operator[](const size_t& index) 
 	{
 		return data[index];
+	}
+
+	~ArrayData() 
+	{
+		delete data;
 	}
 };
 

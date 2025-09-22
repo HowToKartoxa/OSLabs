@@ -3,6 +3,8 @@
 
 #include <catch2/catch_amalgamated.hpp>
 
+#if defined(USE_WINAPI) or defined(USE_STD_THREAD)
+
 TEST_CASE("MinMax regular", "[MinMax]") 
 {
     ArrayData arr(5);
@@ -65,4 +67,6 @@ TEST_CASE("Average single element", "[Average]")
 
     REQUIRE(arr.average == 42);
 }
+
+#endif
 

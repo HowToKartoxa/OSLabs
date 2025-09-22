@@ -1,6 +1,8 @@
 #ifndef _ARRRAY_ALGORITHMS
 #define _ARRAY_ALGORITHMS
 
+#if defined(USE_WINAPI)
+
 #include <windows.h>
 
 DWORD WINAPI MinMax(LPVOID args)
@@ -45,5 +47,51 @@ DWORD WINAPI Average(LPVOID args)
 
 	return 0;
 }
+
+#elif defined(USE_STD_THREAD)
+
+#include <thread>
+#include <chrono>
+
+void MinMax(ArrayData* args)
+{
+	ArrayData& array = *args;
+
+	size_t min = array[0];
+	size_t max = array[0];
+
+	for (size_t i = 0; i < array.size; i++)
+	{
+		if (array[i] > max)
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(7));
+			max = array[i];
+			array.max_index = i;
+		}
+		if (array[i] < min)
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(7));
+			min = array[i];
+			array.min_index = i;
+		}
+	}
+}
+
+void Average(ArrayData* args)
+{
+	ArrayData& array = *args;
+
+	size_t sum = 0;
+
+	for (size_t i = 0; i < array.size; i++)
+	{
+		sum += array[i];
+		std::this_thread::sleep_for(std::chrono::milliseconds(12));
+	}
+
+	array.average = sum / array.size;
+}
+
+#endif
 
 #endif
