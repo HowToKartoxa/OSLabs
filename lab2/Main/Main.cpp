@@ -123,9 +123,14 @@ int main(int argc, char** argv)
 	array[array.min_index] = array.average;
 	array[array.max_index] = array.average;
 
-	std::cout << '\n';
+	std::cout << "Resulting array:\n";
 	for (size_t i = 0; i < size; i++) 
 	{
 		std::cout << array[i] << ' ';
 	}
+	
+	std::cout << '\n';
+	std::system("pause");
+
+	return 0;
 }
