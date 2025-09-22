@@ -37,7 +37,7 @@ DWORD WINAPI Average(LPVOID args)
 {
 	ArrayData& array = *reinterpret_cast<ArrayData*>(args);
 
-	size_t sum = 0;
+	long long sum = 0;
 
 	for (size_t i = 0; i < array.size; i++)
 	{
@@ -83,7 +83,7 @@ void Average(ArrayData* args)
 {
 	ArrayData& array = *args;
 
-	size_t sum = 0;
+	long long sum = 0;
 
 	for (size_t i = 0; i < array.size; i++)
 	{
