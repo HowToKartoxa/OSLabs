@@ -1,7 +1,7 @@
 #include <utils/array_algorithms.h>
 #include <utils/array_data.h>
 
-#include <catch2>
+#include <catch2/catch_amalgamated.hpp>
 
 #if defined(USE_WINAPI) or defined(USE_STD_THREAD)
 

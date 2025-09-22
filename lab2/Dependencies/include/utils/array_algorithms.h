@@ -1,6 +1,8 @@
 #ifndef _ARRRAY_ALGORITHMS
 #define _ARRAY_ALGORITHMS
 
+#include <utils/array_data.h>
+
 #if defined(USE_WINAPI)
 
 #include <windows.h>
