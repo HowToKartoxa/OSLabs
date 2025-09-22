@@ -1,9 +1,3 @@
-#if not defined(USE_WINAPI) && not defined(USE_STD_THREAD)
-
-#define USE_WINAPI
-
-#endif
-
 #include <utils/array_data.h>
 #include <utils/input_parsing.h>
 #include <utils/array_algorithms.h>
@@ -15,14 +9,13 @@
 #if defined (USE_WINAPI)
 
 #include <windows.h>
+#undef max()
 
 #elif defined (USE_STD_THREAD)
 
 #include <thread>
 
 #endif
-
-#undef max()
 
 int main(int argc, char** argv) 
 {
