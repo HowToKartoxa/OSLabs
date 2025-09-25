@@ -14,8 +14,8 @@ TEST_CASE("MinMax regular", "[MinMax]")
 
     MinMax(&arr);
 
-    REQUIRE(arr.min_index == 3);
-    REQUIRE(arr.max_index == 2); 
+    REQUIRE(arr.min_indices.top() == 3);
+    REQUIRE(arr.max_indices.top() == 2);
 }
 
 TEST_CASE("MinMax same element", "[MinMax]") 
@@ -28,8 +28,8 @@ TEST_CASE("MinMax same element", "[MinMax]")
 
     MinMax(&arr);
 
-    REQUIRE(arr.min_index == 0);
-    REQUIRE(arr.max_index == 0);
+    REQUIRE(arr.min_indices.top() == 0);
+    REQUIRE(arr.max_indices.top() == 0);
 }
 
 TEST_CASE("MinMax single element", "[MinMax]") 
@@ -39,9 +39,9 @@ TEST_CASE("MinMax single element", "[MinMax]")
 
     MinMax(&arr);
 
-    REQUIRE(arr.min_index == arr.max_index);
-    REQUIRE(arr.max_index == 0);
-    REQUIRE(arr.min_index == 0);
+    REQUIRE(arr.min_indices.top() == arr.max_indices.top());
+    REQUIRE(arr.max_indices.top() == 0);
+    REQUIRE(arr.min_indices.top() == 0);
 }
 
 TEST_CASE("Average regular", "[Average]") 
@@ -64,5 +64,26 @@ TEST_CASE("Average single element", "[Average]")
     Average(&arr);
 
     REQUIRE(arr.average == 42);
+}
+
+TEST_CASE("MinMax multiple", "[MinMax]") 
+{
+    ArrayData arr(5);
+    arr[0] = -100;
+    arr[1] = -100;
+    arr[2] = 8;
+    arr[3] = 100;
+    arr[4] = 100;
+
+    MinMax(&arr);
+
+    REQUIRE(arr.min_indices.size() == 2);
+    REQUIRE(arr.max_indices.size() == 2);
+    REQUIRE(arr.min_indices.top() == 0);
+    REQUIRE(arr.max_indices.top() == 3);
+    arr.min_indices.pop();
+    arr.max_indices.pop();
+    REQUIRE(arr.min_indices.top() == 1);
+    REQUIRE(arr.max_indices.top() == 4);
 }
 

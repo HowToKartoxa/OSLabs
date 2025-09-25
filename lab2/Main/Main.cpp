@@ -120,8 +120,17 @@ int main(int argc, char** argv)
 
 #endif
 
-	array[array.min_index] = array.average;
-	array[array.max_index] = array.average;
+	while (!array.min_indices.empty()) 
+	{
+		array[array.min_indices.top()] = array.average;
+		array.min_indices.pop();
+	}
+
+	while (!array.max_indices.empty()) 
+	{
+		array[array.max_indices.top()] = array.average;
+		array.max_indices.pop();
+	}
 
 	std::cout << "Resulting array:\n";
 	for (size_t i = 0; i < size; i++) 

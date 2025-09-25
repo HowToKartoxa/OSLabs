@@ -20,13 +20,23 @@ DWORD WINAPI MinMax(LPVOID args)
 		{
 			Sleep(7);
 			max = array[i];
-			array.max_index = i;
 		}
 		if (array[i] < min)
 		{
 			Sleep(7);
 			min = array[i];
-			array.min_index = i;
+		}
+	}
+
+	for (size_t i = 0; i < array.size; i++) 
+	{
+		if (array[i] == min) 
+		{
+			array.min_indices.push(i);
+		}
+		if (array[i] == max) 
+		{
+			array.max_indices.push(i);
 		}
 	}
 
@@ -68,13 +78,23 @@ void MinMax(ArrayData* args)
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(7));
 			max = array[i];
-			array.max_index = i;
 		}
 		if (array[i] < min)
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(7));
 			min = array[i];
-			array.min_index = i;
+		}
+	}
+
+	for (size_t i = 0; i < array.size; i++)
+	{
+		if (array[i] == min)
+		{
+			array.min_indices.push(i);
+		}
+		if (array[i] == max)
+		{
+			array.max_indices.push(i);
 		}
 	}
 }
