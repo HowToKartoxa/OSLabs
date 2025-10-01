@@ -11,8 +11,8 @@ DWORD WINAPI MinMax(LPVOID args)
 {
 	ArrayData& array = *reinterpret_cast<ArrayData*>(args);
 
-	size_t min = array[0];
-	size_t max = array[0];
+	int min = array[0];
+	int max = array[0];
 
 	for (size_t i = 0; i < array.size; i++)
 	{
@@ -20,13 +20,25 @@ DWORD WINAPI MinMax(LPVOID args)
 		{
 			Sleep(7);
 			max = array[i];
-			array.max_index = i;
 		}
 		if (array[i] < min)
 		{
 			Sleep(7);
 			min = array[i];
-			array.min_index = i;
+		}
+	}
+
+	for (size_t i = 0; i < array.size; i++) 
+	{
+		if (array[i] == min) 
+		{
+			Sleep(7);
+			array.min_indices.push(i);
+		}
+		if (array[i] == max) 
+		{
+			Sleep(7);
+			array.max_indices.push(i);
 		}
 	}
 
@@ -59,8 +71,8 @@ void MinMax(ArrayData* args)
 {
 	ArrayData& array = *args;
 
-	size_t min = array[0];
-	size_t max = array[0];
+	int min = array[0];
+	int max = array[0];
 
 	for (size_t i = 0; i < array.size; i++)
 	{
@@ -68,13 +80,25 @@ void MinMax(ArrayData* args)
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(7));
 			max = array[i];
-			array.max_index = i;
 		}
 		if (array[i] < min)
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(7));
 			min = array[i];
-			array.min_index = i;
+		}
+	}
+
+	for (size_t i = 0; i < array.size; i++)
+	{
+		if (array[i] == min)
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(7));
+			array.min_indices.push(i);
+		}
+		if (array[i] == max)
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(7));
+			array.max_indices.push(i);
 		}
 	}
 }
