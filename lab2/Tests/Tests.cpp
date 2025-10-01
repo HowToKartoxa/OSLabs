@@ -28,8 +28,8 @@ TEST_CASE("MinMax same element", "[MinMax]")
 
     MinMax(&arr);
 
-    REQUIRE(arr.min_indices.top() == 0);
-    REQUIRE(arr.max_indices.top() == 0);
+    REQUIRE(arr.min_indices.top() == 3);
+    REQUIRE(arr.max_indices.top() == 3);
 }
 
 TEST_CASE("MinMax single element", "[MinMax]") 
@@ -79,11 +79,11 @@ TEST_CASE("MinMax multiple", "[MinMax]")
 
     REQUIRE(arr.min_indices.size() == 2);
     REQUIRE(arr.max_indices.size() == 2);
-    REQUIRE(arr.min_indices.top() == 0);
-    REQUIRE(arr.max_indices.top() == 3);
-    arr.min_indices.pop();
-    arr.max_indices.pop();
     REQUIRE(arr.min_indices.top() == 1);
     REQUIRE(arr.max_indices.top() == 4);
+    arr.min_indices.pop();
+    arr.max_indices.pop();
+    REQUIRE(arr.min_indices.top() == 0);
+    REQUIRE(arr.max_indices.top() == 3);
 }
 
