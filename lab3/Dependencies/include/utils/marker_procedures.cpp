@@ -8,32 +8,33 @@
 
 DWORD WINAPI marker(LPVOID args) 
 {
-	MarkerParameterData data = *reinterpret_cast<MarkerParameterData*>(args);
+	MarkerParameterData& data = *reinterpret_cast<MarkerParameterData*>(args);
 
 	WaitForSingleObject(data.start_threads_event, INFINITE);
 
-	srand(data.thread_index);
+	srand(data.thread_number);
 
 	size_t random;
 
-	HANDLE response_events[2]{ data.exit_thread_event, data.resume_thread_event };
+	HANDLE response_events[2]{ data.exit_thread_event, data.start_threads_event };
 
 	std::stack<size_t> marked_elements;
 
 	while (true) 
 	{
 		random = rand() % data.array_size;
-		if (data[random]) 
+		if (data.array_data[random]) 
 		{
 			WaitForSingleObject(data.output_mutex, INFINITE);
 			std::cout
 				<< ">>> Thread "
-				<< data.thread_index
-				<< "\n    Marked "
+				<< data.thread_number
+				<< ":\n    "
 				<< marked_elements.size()
-				<< " elements so far"
+				<< " marked elements so far"
 				<< "\n    Cannot mark element at position "
-				<< random;
+				<< random
+				<< '\n';
 			ReleaseMutex(data.output_mutex);
 
 			SetEvent(data.thread_stopped_event);
@@ -42,11 +43,10 @@ DWORD WINAPI marker(LPVOID args)
 			{
 				while (!marked_elements.empty()) 
 				{
-					data.array_data[marked_elements.top()] = 0;
+					data[marked_elements.top()] = 0;
 					marked_elements.pop();
 				}
-
-				ExitThread(0);
+				break;
 			}
 		}
 		else 
@@ -54,11 +54,13 @@ DWORD WINAPI marker(LPVOID args)
 			Sleep(5);
 
 			WaitForSingleObject(data.array_mutex, INFINITE);
-			data[random] = data.thread_index;
+			data[random] = data.thread_number;
 			ReleaseMutex(data.array_mutex);
 
 			Sleep(5);
+
+			marked_elements.push(random);
 		}
 	}
-
+	return 0;
 }
