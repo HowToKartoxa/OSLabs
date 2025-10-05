@@ -10,13 +10,13 @@ DWORD WINAPI marker(LPVOID args)
 {
 	MarkerParameterData data = *reinterpret_cast<MarkerParameterData*>(args);
 
-	WaitForSingleObject(data.start_thread_event, INFINITE);
+	WaitForSingleObject(data.start_threads_event, INFINITE);
 
 	srand(data.thread_index);
 
 	size_t random;
 
-	HANDLE response_events[2]{ data.exit_thread_event, data.start_thread_event };
+	HANDLE response_events[2]{ data.exit_thread_event, data.resume_thread_event };
 
 	std::stack<size_t> marked_elements;
 

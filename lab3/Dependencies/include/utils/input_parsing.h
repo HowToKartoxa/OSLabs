@@ -192,6 +192,64 @@ bool CheckIfInt(std::string str, bool verbose = true)
 	}
 }
 
+bool CheckIfUnsignedShort(std::string str, bool verbose = true)
+{
+	std::string int_max_str = std::to_string(USHRT_MAX);
+	bool is_negative = false;
+	if (str.length() == 0)
+	{
+		if (verbose) std::cout << "Not a number!\n";
+		return false;
+	}
+	else if (str[0] == '-')
+	{
+		if (str.length() == 1)
+		{
+			if (verbose) std::cout << "Not a number!\n";
+			return false;
+		}
+		else 
+		{
+			if (verbose) std::cout << "Not a positive number!\n";
+			return false;
+		}
+	}
+	if (str.length() > int_max_str.length())
+	{
+		if (verbose) std::cout << "Enter a smaller number!\n";
+		return false;
+	}
+	else if (str.length() == int_max_str.length())
+	{
+		for (size_t i = 0; i < str.length(); i++)
+		{
+			if (!isdigit(str[i]))
+			{
+				if (verbose) std::cout << "Not an integer number!\n";
+				return false;
+			}
+			else if (str[i] > int_max_str[i] && !(i == int_max_str.length() - 1 && is_negative))
+			{
+				if (verbose) std::cout << "Enter a smaller number!\n";
+				return false;
+			}
+		}
+		return true;
+	}
+	else
+	{
+		for (size_t i = 0; i < str.length(); i++)
+		{
+			if (!isdigit(str[i]))
+			{
+				if (verbose) std::cout << "Not a number!\n";
+				return false;
+			}
+		}
+		return true;
+	}
+}
+
 size_t StringToSizeT(std::string str)
 {
 	size_t result = 0;
