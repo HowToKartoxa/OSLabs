@@ -172,9 +172,10 @@ int main(int arc, char** argv)
 		}
 		invalid_data_entered = true;
 
+		std::cout << "Killing thread " << thread_to_kill_index << '\n';
 		SetEvent(threads_parameter_data[thread_to_kill_index].exit_thread_event);
 		wait_result = WaitForSingleObject(threads[thread_to_kill_index], INFINITE);
-		if (wait_result == WAIT_FAILED) 
+		if (wait_result == WAIT_FAILED)
 		{
 			DWORD error = GetLastError();
 			std::cout << "Failed to wait for marker thread of number " << thread_to_kill_number << " to finish with error: " << error << " !\n";
@@ -189,14 +190,7 @@ int main(int arc, char** argv)
 		}
 		std::cout << '\n';
 
-		if (thread_to_kill_index < number_of_threads - 1) 
-		{
-			temp_handle = threads[thread_to_kill_index];
-			threads[thread_to_kill_index] = threads[number_of_threads - 1];
-			threads[number_of_threads - 1] = temp_handle;
-		}
-
-		CloseHandle(threads[number_of_threads - 1]);
+		CloseHandle(threads[thread_to_kill_index]);
 		CloseHandle(threads_parameter_data[thread_to_kill_index].exit_thread_event);
 		CloseHandle(threads_parameter_data[thread_to_kill_index].thread_stopped_event);
 
