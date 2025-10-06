@@ -19,5 +19,5 @@ lab2/dependencies/lib
 lab3/*/x64
 lab3/x64
 lab3/build
-# test framework ignore goes here
+lab3/dependencies/include/boost
 lab3/dependencies/lib
