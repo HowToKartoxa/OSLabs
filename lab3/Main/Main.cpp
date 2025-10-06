@@ -108,7 +108,7 @@ int main(int arc, char** argv)
 		}
 	}
 
-	Sleep(200);
+	Sleep(25 * number_of_threads);
 
 	PulseEvent(start_threads_event);
 
@@ -133,6 +133,8 @@ int main(int arc, char** argv)
 			std::system("pause");
 			return error;
 		}
+
+		WaitForSingleObject(output_mutex, INFINITE);
 
 		std::cout << "\nArray after all marker threads stopped:\n";
 		for (size_t i = 0; i < size; i++)
@@ -172,7 +174,8 @@ int main(int arc, char** argv)
 		}
 		invalid_data_entered = true;
 
-		std::cout << "Killing thread " << thread_to_kill_index << '\n';
+		ReleaseMutex(output_mutex);
+
 		SetEvent(threads_parameter_data[thread_to_kill_index].exit_thread_event);
 		wait_result = WaitForSingleObject(threads[thread_to_kill_index], INFINITE);
 		if (wait_result == WAIT_FAILED)
@@ -183,12 +186,16 @@ int main(int arc, char** argv)
 			return error;
 		}
 
+		WaitForSingleObject(output_mutex, INFINITE);
+
 		std::cout << "\nArray after marker thread of number " << thread_to_kill_number << " exited:\n";
 		for (size_t i = 0; i < size; i++)
 		{
 			std::cout << array[i] << ' ';
 		}
 		std::cout << '\n';
+
+		ReleaseMutex(output_mutex);
 
 		CloseHandle(threads[thread_to_kill_index]);
 		CloseHandle(threads_parameter_data[thread_to_kill_index].exit_thread_event);
@@ -198,7 +205,8 @@ int main(int arc, char** argv)
 
 		active_threads_left--;
 		PulseEvent(start_threads_event);
-		Sleep(200);
+
+		Sleep(25 * number_of_threads);
 	}
 
 	delete[] array;
