@@ -27,9 +27,9 @@ DWORD WINAPI marker(LPVOID args)
 		{
 			WaitForSingleObject(data.output_mutex, INFINITE);
 			std::cout
-				<< ">>> Thread "
+				<< "--> Thread ("
 				<< data.thread_number
-				<< ":\n    "
+				<< "):\n    "
 				<< marked_elements.size()
 				<< " marked elements so far"
 				<< "\n    Cannot mark element at position "
