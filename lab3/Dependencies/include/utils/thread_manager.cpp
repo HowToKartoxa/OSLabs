@@ -4,7 +4,6 @@
 
 #include <iostream>
 
-
 ThreadManager::ThreadManager(int* _array_data, size_t _array_size, unsigned short _thread_num) 
 {
 	array_data = _array_data;

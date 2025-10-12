@@ -1,10 +1,17 @@
+#if defined(USE_WINAPI)
+
 #include <utils/thread_manager.h>
+
+#elif defined(USE_BOOST)
+
+#include <utils/thread_manager_boost.h>
+
+#endif
+
 #include <utils/input_parsing.h>
 
 #include <iostream>
 #include <string>
-
-#include <windows.h>
 
 int main(int arc, char** argv) 
 {

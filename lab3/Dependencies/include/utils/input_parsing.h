@@ -11,7 +11,8 @@ bool CheckFileName(std::string, std::string, bool verbose = true);
 bool CheckIfSizeT(std::string, bool verbose = true);
 bool CheckIfInt(std::string, bool verbose = true);
 bool CheckIfUnsignedShort(std::string, bool verbose = true);
-size_t StringToSizeT(std::string);
 bool CheckIfDouble(std::string, bool verbose = true);
+
+size_t StringToSizeT(std::string);
 
 #endif
