@@ -93,7 +93,6 @@ DWORD ThreadManager::Operate()
 	unsigned short thread_to_kill_index = 0;
 
 	MarkerParameterData temp_marker_parameter_data;
-	HANDLE temp_handle;
 
 	DWORD wait_result;
 

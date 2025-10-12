@@ -32,9 +32,8 @@ int main(int arc, char** argv)
 		std::cout << "Enter number of marker threads:\n";
 		std::getline(std::cin, temp_string);
 	}
-
+	
 	ThreadManager* manager;
-	DWORD error;
 
 	try 
 	{
