@@ -20,19 +20,19 @@ ThreadManager::ThreadManager(int* _array_data, size_t _array_size, unsigned shor
 
 DWORD ThreadManager::InitializeCommonHandles() 
 {
-	HANDLE output_mutex = CreateMutexA(NULL, FALSE, "OUTPUT_MUTEX");
+	output_mutex = CreateMutexA(NULL, FALSE, "OUTPUT_MUTEX");
 	if (output_mutex == NULL)
 	{
 		return HandleError("failed to create output mutex!");
 	}
 
-	HANDLE array_mutex = CreateMutexA(NULL, FALSE, "ARRAY_MUTEX");
+	array_mutex = CreateMutexA(NULL, FALSE, "ARRAY_MUTEX");
 	if (array_mutex == NULL)
 	{
 		return HandleError("failed to create array mutex!");
 	}
 
-	HANDLE start_threads_event = CreateEventA(NULL, TRUE, FALSE, "START_THREADS_EVENT");
+	start_threads_event = CreateEventA(NULL, TRUE, FALSE, "START_THREADS_EVENT");
 	if (start_threads_event == NULL)
 	{
 		return HandleError("failed to create start threads event!");
