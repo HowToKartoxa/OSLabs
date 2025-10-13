@@ -1,2 +1,2 @@
 #include <utils/thread_manager_boost.h>
-#include <boost/thread/thread.hpp>
+#include <boost/thread.hpp>
