@@ -1,5 +1,5 @@
-#ifndef _EVENT
-#define _EVENT
+#ifndef _EVENT_BOOST
+#define _EVENT_BOOST
 
 #include <boost/thread.hpp>
 #include <vector>
@@ -38,6 +38,7 @@ public:
 	void ResetAll();
 
 	size_t WaitOne();
+	void WaitSpecific(size_t);
 	void WaitAll();
 };
 

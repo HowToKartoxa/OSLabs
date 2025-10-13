@@ -39,7 +39,9 @@ int main(int arc, char** argv)
 		std::cout << "Enter number of marker threads:\n";
 		std::getline(std::cin, temp_string);
 	}
-	
+
+#if defined(USE_WINAPI)
+
 	ThreadManager* manager;
 
 	try 
@@ -52,4 +54,10 @@ int main(int arc, char** argv)
 	}
 
 	return manager->Operate();
+
+#elif defined(USE_BOOST)
+
+	ThreadManager manager;
+
+#endif
 }

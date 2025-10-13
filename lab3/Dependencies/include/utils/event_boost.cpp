@@ -34,8 +34,8 @@ MultiEvent::MultiEvent(std::vector<bool> _status) : status(_status) {}
 
 void MultiEvent::Set(size_t index)
 {
-	if (index >= status.size()) throw std::out_of_range("event index out of range");
 	boost::unique_lock<boost::mutex> lock(mutex);
+	if (index >= status.size()) throw std::out_of_range("event index out of range");
 	status[index] = true;
 	condition_var.notify_all();
 }
@@ -52,8 +52,8 @@ void MultiEvent::SetAll()
 
 void MultiEvent::Reset(size_t index) 
 {
-	if (index >= status.size()) throw std::out_of_range("event index out of range");
 	boost::unique_lock<boost::mutex> lock(mutex);
+	if (index >= status.size()) throw std::out_of_range("event index out of range");
 	status[index] = false;
 }
 
@@ -94,6 +94,16 @@ size_t MultiEvent::WaitOne()
 		}
 	}
 	return res;
+}
+
+void MultiEvent::WaitSpecific(size_t index) 
+{
+	boost::unique_lock<boost::mutex> lock(mutex);
+	if (index >= status.size()) throw std::out_of_range("event index out of range");
+	while (!status[index])
+	{
+		condition_var.wait(lock);
+	}
 }
 
 void MultiEvent::WaitAll() 

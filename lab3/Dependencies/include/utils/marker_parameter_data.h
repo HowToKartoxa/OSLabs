@@ -1,6 +1,10 @@
 #ifndef _MARKER_PARAMETER_DATA
 #define _MARKER_PARAMETER_DATA
 
+#include <utils/event_boost.h>
+
+#include <boost/thread.hpp>
+
 #include <windows.h>
 
 struct MarkerParameterData 
