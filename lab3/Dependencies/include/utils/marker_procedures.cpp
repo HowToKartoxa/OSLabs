@@ -72,7 +72,7 @@ void marker_boost
 	boost::mutex* array_mutex,
 	Event* start_threads_event,
 	MultiEvent* threads_stopped_events,
-	MultiEvent* response_events
+	MultiEvent** response_events
 )
 {
 	start_threads_event->Wait();
@@ -100,9 +100,9 @@ void marker_boost
 				<< '\n';
 			output_mutex->unlock();
 
-			threads_stopped_events->Set(thread_number);
+			threads_stopped_events->Set(thread_number - 1);
 
-			if (response_events[thread_number].WaitOne() == 0) 
+			if (response_events[thread_number - 1]->WaitOne() == 0) 
 			{
 				while (!marked_elements.empty())
 				{
@@ -113,7 +113,7 @@ void marker_boost
 			}
 			else 
 			{
-				response_events[thread_number].Reset(1);
+				response_events[thread_number - 1]->Reset(1);
 			}
 		}
 		else

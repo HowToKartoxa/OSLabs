@@ -18,7 +18,7 @@ void marker_boost
 	boost::mutex*,
 	Event*,
 	MultiEvent*,
-	MultiEvent*
+	MultiEvent**
 );
 
 #endif

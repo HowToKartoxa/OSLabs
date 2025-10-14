@@ -1,3 +1,5 @@
+#define USE_BOOST
+
 #if defined(USE_WINAPI)
 
 #include <utils/thread_manager.h>
@@ -57,7 +59,16 @@ int main(int arc, char** argv)
 
 #elif defined(USE_BOOST)
 
-	ThreadManager manager;
+	ThreadManagerBoost manager(array, size, std::stoi(temp_string));
+	
+	try 
+	{
+		manager.Operate();
+	}
+	catch (...) 
+	{
+
+	}
 
 #endif
 }

@@ -26,6 +26,7 @@ private:
 	boost::mutex mutex;
 	boost::condition_variable condition_var;
 	std::vector<bool> status;
+	std::vector<bool> activated;
 
 public:
 	MultiEvent();
@@ -37,8 +38,10 @@ public:
 	void Reset(size_t);
 	void ResetAll();
 
+	void Deactivate(size_t);
+	void Activate(size_t);
+
 	size_t WaitOne();
-	void WaitSpecific(size_t);
 	void WaitAll();
 };
 

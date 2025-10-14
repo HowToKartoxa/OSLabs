@@ -7,11 +7,11 @@
 
 #include <vector>
 
-class ThreadManager
+class ThreadManagerBoost
 {
 public:
-	ThreadManager(int*, size_t, unsigned short);
-	~ThreadManager();
+	ThreadManagerBoost(int*, size_t, unsigned short);
+	~ThreadManagerBoost();
 	void Operate();
 	void PrintArray();
 
@@ -28,12 +28,12 @@ private:
 	Event start_threads_event;
 
 	MultiEvent threads_stopped_events;
-	MultiEvent* response_events;
+	MultiEvent** response_events;
 
 	boost::thread** threads;
 
 	void InitializeThreads();
-	unsigned short GetThreadToKillIndex();
+	unsigned short GetThreadToKillNumber();
 	void KillThread(unsigned short);
 };
 

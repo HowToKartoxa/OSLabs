@@ -26,11 +26,23 @@ void Event::Wait()
 	}
 }
 
-MultiEvent::MultiEvent() : status(0) {}
+MultiEvent::MultiEvent() : status(0), activated(0) {}
 
-MultiEvent::MultiEvent(size_t count) : status(count) {}
+MultiEvent::MultiEvent(size_t count) : status(count), activated(count) 
+{
+	for (size_t i = 0; i < count; i++) 
+	{
+		activated[i] = true;
+	}
+}
 
-MultiEvent::MultiEvent(std::vector<bool> _status) : status(_status) {}
+MultiEvent::MultiEvent(std::vector<bool> _status) : status(_status), activated(_status.size())
+{
+	for (size_t i = 0; i < activated.size(); i++) 
+	{
+		activated[i] = true;
+	}
+}
 
 void MultiEvent::Set(size_t index)
 {
@@ -73,7 +85,7 @@ size_t MultiEvent::WaitOne()
 	bool found = false;
 	for (size_t i = 0; i < status.size(); i++) 
 	{
-		if (status[i] == true) 
+		if (activated[i] && status[i]) 
 		{
 			res = i;
 			found = true;
@@ -85,7 +97,7 @@ size_t MultiEvent::WaitOne()
 		condition_var.wait(lock);
 		for (size_t i = 0; i < status.size(); i++)
 		{
-			if (status[i] == true)
+			if (activated[i] && status[i])
 			{
 				res = i;
 				found = true;
@@ -96,14 +108,16 @@ size_t MultiEvent::WaitOne()
 	return res;
 }
 
-void MultiEvent::WaitSpecific(size_t index) 
+void MultiEvent::Activate(size_t index) 
 {
 	boost::unique_lock<boost::mutex> lock(mutex);
-	if (index >= status.size()) throw std::out_of_range("event index out of range");
-	while (!status[index])
-	{
-		condition_var.wait(lock);
-	}
+	activated[index] = true;
+}
+
+void MultiEvent::Deactivate(size_t index) 
+{
+	boost::unique_lock<boost::mutex> lock(mutex);
+	activated[index] = false;
 }
 
 void MultiEvent::WaitAll() 
@@ -112,7 +126,7 @@ void MultiEvent::WaitAll()
 	bool found = false;
 	for (size_t i = 0; i < status.size(); i++)
 	{
-		if (status[i] == false)
+		if (activated[i] && !status[i])
 		{
 			found = true;
 			break;
@@ -124,7 +138,7 @@ void MultiEvent::WaitAll()
 		found = false;
 		for (size_t i = 0; i < status.size(); i++)
 		{
-			if (status[i] == false)
+			if (activated[i] && !status[i])
 			{
 				found = true;
 				break;

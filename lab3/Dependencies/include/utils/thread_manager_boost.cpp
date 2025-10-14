@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-ThreadManager::ThreadManager(int* _array_data, size_t _array_size, unsigned short _thread_num) :  
+ThreadManagerBoost::ThreadManagerBoost(int* _array_data, size_t _array_size, unsigned short _thread_num) :  
 	output_mutex(),
 	array_mutex(),
 	start_threads_event(),
@@ -17,7 +17,12 @@ ThreadManager::ThreadManager(int* _array_data, size_t _array_size, unsigned shor
 	number_of_threads = _thread_num;
 	active_threads = 0;
 
-	response_events = new MultiEvent[number_of_threads]{ 2 };
+	response_events = new MultiEvent* [number_of_threads];
+
+	for (unsigned short i = 0; i < number_of_threads; i++) 
+	{
+		response_events[i] = new MultiEvent(2);
+	}
 
 	try 
 	{
@@ -29,7 +34,7 @@ ThreadManager::ThreadManager(int* _array_data, size_t _array_size, unsigned shor
 	}
 }
 
-void ThreadManager::InitializeThreads() 
+void ThreadManagerBoost::InitializeThreads() 
 {
 	threads = new boost::thread* [number_of_threads];
 
@@ -39,8 +44,8 @@ void ThreadManager::InitializeThreads()
 		(
 			marker_boost,
 			array_data,
-			i,
 			array_size,
+			i + 1,
 			&output_mutex,
 			&array_mutex,
 			&start_threads_event,
@@ -50,7 +55,7 @@ void ThreadManager::InitializeThreads()
 	}
 }
 
-void ThreadManager::Operate() 
+void ThreadManagerBoost::Operate() 
 {
 	boost::this_thread::sleep_for(boost::chrono::milliseconds(25 * number_of_threads));
 	start_threads_event.Set();
@@ -58,43 +63,44 @@ void ThreadManager::Operate()
 	active_threads = number_of_threads;
 
 	unsigned short thread_to_kill_number = 0;
-	unsigned short thread_to_kill_index = 0;
 
 	while (active_threads) 
 	{
 		threads_stopped_events.WaitAll();
+		threads_stopped_events.ResetAll();
 
 		std::cout << "\nArray after all marker threads stopped:\n";
 		PrintArray();
 
-		thread_to_kill_index = GetThreadToKillIndex();
+		thread_to_kill_number = GetThreadToKillNumber();
 
-		std::cout << "Killing thread " << thread_to_kill_index << '\n';
+		std::cout << "Killing thread " << thread_to_kill_number << '\n';
 
-		response_events[thread_to_kill_index].Set(0);
+		response_events[thread_to_kill_number - 1]->Set(0);
 
-		threads[thread_to_kill_index]->join();
+		threads[thread_to_kill_number - 1]->join();
 
 		std::cout << "\nArray after marker thread of number " << thread_to_kill_number << " exited:\n";
 		PrintArray();
 
-		KillThread(thread_to_kill_index);
+		KillThread(thread_to_kill_number - 1);
 
 		for (unsigned short i = 0; i < active_threads; i++) 
 		{
 			if (threads[i] != nullptr) 
 			{
-				response_events[thread_to_kill_index].Set(1);
+				response_events[i]->Set(1);
 			}
 		}
 
-		boost::this_thread::sleep_for(boost::chrono::milliseconds(30 * active_threads));
+		active_threads--;
+		boost::this_thread::sleep_for(boost::chrono::milliseconds(50 * active_threads));
 	}
 
 	system("pause");
 }
 
-unsigned short ThreadManager::GetThreadToKillIndex() 
+unsigned short ThreadManagerBoost::GetThreadToKillNumber() 
 {
 	std::string temp_string;
 
@@ -112,7 +118,7 @@ unsigned short ThreadManager::GetThreadToKillIndex()
 
 		thread_number = std::stoi(temp_string);
 
-		if (threads[thread_number] != nullptr) 
+		if (threads[thread_number - 1] != nullptr) 
 		{
 			return thread_number;
 		}
@@ -121,12 +127,13 @@ unsigned short ThreadManager::GetThreadToKillIndex()
 	}
 }
 
-void ThreadManager::KillThread(unsigned short thread_index) 
+void ThreadManagerBoost::KillThread(unsigned short thread_index) 
 {
+	threads_stopped_events.Deactivate(thread_index);
 	delete threads[thread_index];
 }
 
-void ThreadManager::PrintArray()
+void ThreadManagerBoost::PrintArray()
 {
 	for (size_t i = 0; i < array_size; i++)
 	{
@@ -135,8 +142,12 @@ void ThreadManager::PrintArray()
 	std::cout << '\n';
 }
 
-ThreadManager::~ThreadManager() 
+ThreadManagerBoost::~ThreadManagerBoost() 
 {
 	delete[] array_data;
 	delete[] threads;
+	for (unsigned int i = 0; i < number_of_threads; i++) 
+	{
+		delete response_events[i];
+	}
 }
