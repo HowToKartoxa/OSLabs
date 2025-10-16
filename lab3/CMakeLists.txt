@@ -4,6 +4,8 @@ project(Lab2 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+enable_testing()
+
 include_directories(Dependencies/include)
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
@@ -37,11 +39,12 @@ add_executable(Main Main/Main.cpp)
 
 if(USE_WINAPI)
 	target_link_libraries(Main PRIVATE kernel32)
-elseif(USE_STD_THREAD)
+elseif(USE_BOOST)
 	target_link_libraries(Main PRIVATE Boost::thread)
-	# and others
 endif()
 
 add_executable(Tests Tests/Tests.cpp)
 
-target_link_libraries(Tests PRIVATE Boost::test)
+target_link_libraries(Tests PRIVATE Boost::unit_test_framework)
+
+add_test(NAME AllTests COMMAND Tests)
