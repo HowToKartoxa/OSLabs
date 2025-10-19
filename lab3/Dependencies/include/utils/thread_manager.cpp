@@ -193,7 +193,6 @@ void ThreadManager::PrintArray()
 
 ThreadManager::~ThreadManager() 
 {
-	delete[] array_data;
 	delete[] threads_stopped_events;
 	delete[] threads;
 	delete[] threads_ids;

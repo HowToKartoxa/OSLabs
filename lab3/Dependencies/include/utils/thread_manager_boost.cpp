@@ -144,7 +144,6 @@ void ThreadManagerBoost::PrintArray()
 
 ThreadManagerBoost::~ThreadManagerBoost() 
 {
-	delete[] array_data;
 	delete[] threads;
 	for (unsigned int i = 0; i < number_of_threads; i++) 
 	{

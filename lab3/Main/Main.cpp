@@ -1,5 +1,3 @@
-#define USE_BOOST
-
 #if defined(USE_WINAPI)
 
 #include <utils/thread_manager.h>
@@ -55,7 +53,10 @@ int main(int arc, char** argv)
 		return exception;
 	}
 
-	return manager->Operate();
+	DWORD res = manager->Operate();
+
+	delete manager;
+	return res;
 
 #elif defined(USE_BOOST)
 
@@ -71,4 +72,6 @@ int main(int arc, char** argv)
 	}
 
 #endif
+
+	delete[] array;
 }
