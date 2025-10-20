@@ -108,8 +108,9 @@ DWORD ThreadManager::Operate()
 		PrintArray();
 
 		thread_to_kill_index = GetThreadToKillIndex();
+		thread_to_kill_number = threads_parameter_data[thread_to_kill_index].thread_number;
 
-		std::cout << "Killing thread " << thread_to_kill_index << '\n';
+		std::cout << "Killing thread " << thread_to_kill_number << '\n';
 
 		SetEvent(threads_parameter_data[thread_to_kill_index].exit_thread_event);
 		wait_result = WaitForSingleObject(threads[thread_to_kill_index], INFINITE);
@@ -122,6 +123,7 @@ DWORD ThreadManager::Operate()
 		PrintArray();
 
 		KillThread(thread_to_kill_index);
+		active_threads--;
 
 		PulseEvent(start_threads_event);
 		Sleep(25 * active_threads);
@@ -178,8 +180,6 @@ void ThreadManager::KillThread(unsigned short thread_index)
 	CloseHandle(threads_parameter_data[thread_index].thread_stopped_event);
 
 	threads_parameter_data[thread_index].array_data = nullptr;
-
-	active_threads--;
 }
 
 void ThreadManager::PrintArray() 

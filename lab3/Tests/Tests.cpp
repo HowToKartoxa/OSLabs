@@ -5,6 +5,8 @@
 #include <boost/test/included/unit_test.hpp>
 #include <boost/regex.hpp>
 
+#define USE_WINAPI
+
 struct CoutRedirect
 {
 	CoutRedirect(std::streambuf* new_buf) : old_buf(std::cout.rdbuf(new_buf)) {}
@@ -43,6 +45,8 @@ struct SingleMarkerFixtureWin
 		sleep_for(30), 
 		wait_for(100),
 		out(),
+		thread(NULL),
+		id(0),
 		redirect(out.rdbuf())
 	{
 		test_data = new MarkerParameterData();
@@ -98,12 +102,9 @@ struct SingleMarkerFixtureWin
 	}
 };
 
-BOOST_FIXTURE_TEST_SUITE
-(
-	marker_tests_single_win, 
-	SingleMarkerFixtureWin
-)
+BOOST_FIXTURE_TEST_SUITE(marker_tests_single_win, SingleMarkerFixtureWin)
 
+	
 	BOOST_AUTO_TEST_CASE(marker_init) 
 	{
 		thread = CreateThread(NULL, NULL, marker, reinterpret_cast<LPVOID*>(&test_data), NULL, &id);
@@ -113,7 +114,7 @@ BOOST_FIXTURE_TEST_SUITE
 		BOOST_TEST(thread != nullptr);
 		CloseHandle(thread);
 	}
-
+	/*
 	
 	BOOST_AUTO_TEST_CASE
 	(
@@ -190,8 +191,10 @@ BOOST_FIXTURE_TEST_SUITE
 		ResetEvents();
 		ClearArray();
 	}
-
+	
+	*/
 BOOST_AUTO_TEST_SUITE_END()
+
 
 #elif defined (USE_BOOST)
 

@@ -21,8 +21,10 @@ DWORD WINAPI marker(LPVOID args)
 	while (true) 
 	{
 		random = rand() % data.array_size;
+		WaitForSingleObject(data.array_mutex, INFINITE);
 		if (data.array_data[random]) 
 		{
+			ReleaseMutex(data.array_mutex);
 			WaitForSingleObject(data.output_mutex, INFINITE);
 			std::cout
 				<< "--> Thread ("
@@ -51,7 +53,6 @@ DWORD WINAPI marker(LPVOID args)
 		{
 			Sleep(5);
 
-			WaitForSingleObject(data.array_mutex, INFINITE);
 			data[random] = data.thread_number;
 			ReleaseMutex(data.array_mutex);
 
@@ -86,8 +87,10 @@ void marker_boost
 	while (true)
 	{
 		random = rand() % array_size;
+		array_mutex->lock();
 		if (array_data[random])
 		{
+			array_mutex->unlock();
 			output_mutex->lock();
 			std::cout
 				<< "--> Thread ("
@@ -120,7 +123,6 @@ void marker_boost
 		{
 			boost::this_thread::sleep_for(boost::chrono::milliseconds(5));
 
-			array_mutex->lock();
 			array_data[random] = thread_number;
 			array_mutex->unlock();
 
