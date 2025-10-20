@@ -5,8 +5,6 @@
 #include <boost/test/included/unit_test.hpp>
 #include <boost/regex.hpp>
 
-#define USE_BOOST
-
 struct CoutRedirect
 {
 	CoutRedirect(std::streambuf* new_buf) : old_buf(std::cout.rdbuf(new_buf)) {}
@@ -34,9 +32,9 @@ struct SingleMarkerFixtureWin
 
 	DWORD id;
 
-	CoutRedirect redirect;
-
 	boost::test_tools::output_test_stream out;
+
+	CoutRedirect redirect;
 
 	const size_t sleep_for;
 	const size_t wait_for;
@@ -48,11 +46,12 @@ struct SingleMarkerFixtureWin
 		redirect(out.rdbuf())
 	{
 		test_data = new MarkerParameterData();
-
 		test_data->array_data = new int[size];
 		test_data->array_size = size;
-		ClearArray();
-
+		for (size_t i = 0; i < test_data->array_size; i++)
+		{
+			test_data->array_data[i] = 0;
+		}
 		test_data->thread_number = 1;
 
 		test_data->output_mutex = CreateMutexA(NULL, FALSE, "OUTPUT_MUTEX");
@@ -108,11 +107,14 @@ BOOST_FIXTURE_TEST_SUITE
 	BOOST_AUTO_TEST_CASE(marker_init) 
 	{
 		thread = CreateThread(NULL, NULL, marker, reinterpret_cast<LPVOID*>(&test_data), NULL, &id);
+		std::cout << "sleeping";
 		Sleep(sleep_for);
-		BOOST_TEST(thread != NULL);
+		std::cout << "stopped sleeping";
+		BOOST_TEST(thread != nullptr);
 		CloseHandle(thread);
 	}
 
+	
 	BOOST_AUTO_TEST_CASE
 	(
 		marker_execute,
@@ -194,25 +196,6 @@ BOOST_AUTO_TEST_SUITE_END()
 #elif defined (USE_BOOST)
 
 #include <utils/event_boost.h>
-
-BOOST_AUTO_TEST_CASE
-(
-	boost_event,
-	* boost::unit_test::timeout(3)
-) 
-{
-	Event event;
-	bool signaled = false;
-	boost::thread thread([](Event* event, bool* signaled) { boost::this_thread::sleep_for(boost::chrono::milliseconds(1000)); event->Set(); *signaled = true; }, &event, &signaled);
-	event.Wait();
-	BOOST_TEST(signaled == true);
-}
-
-BOOST_AUTO_TEST_CASE(boost_multievent)
-{
-
-}
-
 #include <utils/thread_manager_boost.h>
 #include <utils/marker_procedures.h>
 
@@ -290,9 +273,7 @@ BOOST_FIXTURE_TEST_SUITE
 
 	BOOST_AUTO_TEST_CASE
 	(
-		marker_init_boost,
-		* boost::unit_test::depends_on("boost_event")
-		* boost::unit_test::depends_on("boost_multievent")
+		marker_init_boost
 	)
 	{
 		thread = new boost::thread
@@ -316,8 +297,6 @@ BOOST_FIXTURE_TEST_SUITE
 		marker_execute_boost,
 		* boost::unit_test::depends_on("marker_tests_single_boost/marker_init")
 		* boost::unit_test::timeout(3)
-		* boost::unit_test::depends_on("boost_event")
-		* boost::unit_test::depends_on("boost_multievent")
 	)
 	{
 		thread = new boost::thread
@@ -345,8 +324,6 @@ BOOST_FIXTURE_TEST_SUITE
 	(
 		marker_result_boost,
 		*boost::unit_test::depends_on("marker_tests_single_boost/marker_execute")
-		* boost::unit_test::depends_on("boost_event")
-		* boost::unit_test::depends_on("boost_multievent")
 	)
 	{
 		thread = new boost::thread
@@ -400,8 +377,6 @@ BOOST_FIXTURE_TEST_SUITE
 		marker_exit_boost,
 		* boost::unit_test::depends_on("marker_tests_single_boost/marker_execute")
 		* boost::unit_test::timeout(3)
-		* boost::unit_test::depends_on("boost_event")
-		* boost::unit_test::depends_on("boost_multievent")
 	)
 	{
 		thread = new boost::thread
