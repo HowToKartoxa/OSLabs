@@ -85,7 +85,7 @@ void ThreadManagerBoost::Operate()
 
 		KillThread(thread_to_kill_number - 1);
 
-		for (unsigned short i = 0; i < active_threads; i++) 
+		for (unsigned short i = 0; i < number_of_threads; i++) 
 		{
 			if (threads[i] != nullptr) 
 			{
@@ -131,6 +131,7 @@ void ThreadManagerBoost::KillThread(unsigned short thread_index)
 {
 	threads_stopped_events.Deactivate(thread_index);
 	delete threads[thread_index];
+	threads[thread_index] = nullptr;
 }
 
 void ThreadManagerBoost::PrintArray()

@@ -49,17 +49,22 @@ void MultiEvent::Set(size_t index)
 	boost::unique_lock<boost::mutex> lock(mutex);
 	if (index >= status.size()) throw std::out_of_range("event index out of range");
 	status[index] = true;
-	condition_var.notify_all();
+	if (activated[index]) 
+	{
+		condition_var.notify_all();
+	}
 }
 
 void MultiEvent::SetAll() 
 {
 	boost::unique_lock<boost::mutex> lock(mutex);
+	bool at_least_one_active = false;
 	for (size_t i = 0; i < status.size(); i++) 
 	{
 		status[i] = true;
+		if (activated[i]) at_least_one_active = true;
 	}
-	condition_var.notify_all();
+	if(at_least_one_active) condition_var.notify_all();
 }
 
 void MultiEvent::Reset(size_t index) 
@@ -111,12 +116,14 @@ size_t MultiEvent::WaitOne()
 void MultiEvent::Activate(size_t index) 
 {
 	boost::unique_lock<boost::mutex> lock(mutex);
+	if (index >= status.size()) throw std::out_of_range("event index out of range");
 	activated[index] = true;
 }
 
 void MultiEvent::Deactivate(size_t index) 
 {
 	boost::unique_lock<boost::mutex> lock(mutex);
+	if (index >= status.size()) throw std::out_of_range("event index out of range");
 	activated[index] = false;
 }
 
