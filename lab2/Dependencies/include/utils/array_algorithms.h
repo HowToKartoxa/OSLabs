@@ -57,7 +57,7 @@ DWORD WINAPI Average(LPVOID args)
 		Sleep(12);
 	}
 
-	array.average = sum / array.size;
+	array.average = sum / (int) array.size;
 
 	return 0;
 }
@@ -115,7 +115,7 @@ void Average(ArrayData* args)
 		std::this_thread::sleep_for(std::chrono::milliseconds(12));
 	}
 
-	array.average = sum / array.size;
+	array.average = sum / (long long) array.size;
 }
 
 #endif
