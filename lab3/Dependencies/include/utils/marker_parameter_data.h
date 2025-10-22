@@ -52,11 +52,6 @@ struct MarkerParameterData
 		thread_stopped_event = src.thread_stopped_event;
 		return *this;
 	}
-
-	~MarkerParameterData() 
-	{
-		
-	}
 };
 
 #endif
