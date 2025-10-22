@@ -5,14 +5,16 @@
 #include <boost/test/included/unit_test.hpp>
 #include <boost/regex.hpp>
 
-#define USE_WINAPI
-
 struct CoutRedirect
 {
 	CoutRedirect(std::streambuf* new_buf) : old_buf(std::cout.rdbuf(new_buf)) {}
 	~CoutRedirect()
 	{
 		std::cout.rdbuf(old_buf);
+	}
+	void Switch() 
+	{
+		old_buf = std::cout.rdbuf(old_buf);
 	}
 private:
 	std::streambuf* old_buf;
@@ -38,12 +40,12 @@ struct SingleMarkerFixtureWin
 
 	CoutRedirect redirect;
 
-	const size_t sleep_for;
-	const size_t wait_for;
+	const DWORD sleep_for;
+	const DWORD wait_for;
 
 	SingleMarkerFixtureWin(size_t size = 40) : 
 		sleep_for(30), 
-		wait_for(100),
+		wait_for(2000),
 		out(),
 		thread(NULL),
 		id(0),
@@ -58,16 +60,17 @@ struct SingleMarkerFixtureWin
 		}
 		test_data->thread_number = 1;
 
-		test_data->output_mutex = CreateMutexA(NULL, FALSE, "OUTPUT_MUTEX");
-		test_data->array_mutex = CreateMutexA(NULL, FALSE, "ARRAY_MUTEX");
+		test_data->output_mutex = CreateMutexA(NULL, FALSE, "OUTPUT_MUTEX_TEST");
+		test_data->array_mutex = CreateMutexA(NULL, FALSE, "ARRAY_MUTEX_TEST");
 
-		test_data->start_threads_event = CreateEventA(NULL, TRUE, FALSE, "START_THREAD_EVENT");
-		test_data->exit_thread_event = CreateEventA(NULL, TRUE, FALSE, "EXIT_THREAD_EVENT");
-		test_data->thread_stopped_event = CreateEventA(NULL, TRUE, FALSE, "THREAD_STOPPED");
+		test_data->start_threads_event = CreateEventA(NULL, TRUE, FALSE, "START_THREAD_TEST_EVENT");
+		test_data->exit_thread_event = CreateEventA(NULL, TRUE, FALSE, "EXIT_THREAD_TEST_EVENT");
+		test_data->thread_stopped_event = CreateEventA(NULL, TRUE, FALSE, "THREAD_STOPPED_TEST_EVENT");
 	}
 	~SingleMarkerFixtureWin()
 	{
-		delete[] test_data->array_data;
+		SuspendThread(thread);
+		CloseHandle(thread);
 
 		CloseHandle(test_data->output_mutex);
 		CloseHandle(test_data->array_mutex);
@@ -76,69 +79,45 @@ struct SingleMarkerFixtureWin
 		CloseHandle(test_data->exit_thread_event);
 		CloseHandle(test_data->thread_stopped_event);
 
-		delete[] test_data;
-	}
-
-	void ClearArray() 
-	{
-		for (size_t i = 0; i < test_data->array_size; i++) 
-		{
-			test_data->array_data[i] = 0;
-		}
-	}
-
-	void Resize_array(size_t new_size) 
-	{
-		delete test_data->array_data;
-		test_data->array_data = new int[new_size];
-		test_data->array_size = new_size;
-	}
-
-	void ResetEvents() 
-	{
-		ResetEvent(test_data->start_threads_event);
-		ResetEvent(test_data->exit_thread_event);
-		ResetEvent(test_data->thread_stopped_event);
+		delete[] test_data->array_data;
+		delete test_data;
 	}
 };
 
-BOOST_FIXTURE_TEST_SUITE(marker_tests_single_win, SingleMarkerFixtureWin)
-
+BOOST_AUTO_TEST_SUITE(marker_tests_single_win)
 	
-	BOOST_AUTO_TEST_CASE(marker_init) 
-	{
-		thread = CreateThread(NULL, NULL, marker, reinterpret_cast<LPVOID*>(&test_data), NULL, &id);
-		std::cout << "sleeping";
-		Sleep(sleep_for);
-		std::cout << "stopped sleeping";
-		BOOST_TEST(thread != nullptr);
-		CloseHandle(thread);
-	}
-	/*
-	
-	BOOST_AUTO_TEST_CASE
+	BOOST_FIXTURE_TEST_CASE
 	(
-		marker_execute,
-		* boost::unit_test::depends_on("marker_tests_single_win/marker_init")
-	) 
+		marker_init, 
+		SingleMarkerFixtureWin
+	)
 	{
-		thread = CreateThread(NULL, NULL, marker, reinterpret_cast<LPVOID*>(&test_data), NULL, &id);
+		thread = CreateThread(NULL, NULL, marker, reinterpret_cast<LPVOID*>(test_data), NULL, &id);
+		Sleep(sleep_for);
+		BOOST_TEST(thread != nullptr);
+	}
+	
+	BOOST_FIXTURE_TEST_CASE
+	(
+		marker_execute, 
+		SingleMarkerFixtureWin
+	)
+	{
+		thread = CreateThread(NULL, NULL, marker, reinterpret_cast<LPVOID*>(test_data), NULL, &id);
+		Sleep(sleep_for);
 		PulseEvent(test_data->start_threads_event);
 		DWORD wait_res = WaitForSingleObject(test_data->thread_stopped_event, wait_for);
 		BOOST_TEST(wait_res == 0);
-
-		CloseHandle(thread);
-		ResetEvents();
-		ClearArray();
 	}
 
-	BOOST_AUTO_TEST_CASE
+	BOOST_FIXTURE_TEST_CASE
 	(
 		marker_result,
-		* boost::unit_test::depends_on("marker_tests_single_win/marker_execute")
+		SingleMarkerFixtureWin
 	)
 	{
-		thread = CreateThread(NULL, NULL, marker, reinterpret_cast<LPVOID*>(&test_data), NULL, &id);
+		thread = CreateThread(NULL, NULL, marker, reinterpret_cast<LPVOID*>(test_data), NULL, &id);
+		Sleep(sleep_for);
 		PulseEvent(test_data->start_threads_event);
 		WaitForSingleObject(test_data->thread_stopped_event, INFINITE);
 
@@ -152,33 +131,35 @@ BOOST_FIXTURE_TEST_SUITE(marker_tests_single_win, SingleMarkerFixtureWin)
 			}
 		}
 
+		std::cout.flush();
 		std::string res = out.str();
 
 		boost::regex expression("[0-9]+");
+		
 		boost::sregex_iterator it(res.begin(), res.end(), expression);
 		boost::sregex_iterator end;
-
-		BOOST_TEST(it != end);
+		
+		bool result = it != end;
+		BOOST_TEST(result == true);
 		BOOST_TEST(it->str() == std::to_string(test_data->thread_number));
 		++it;
-		BOOST_TEST(it != end);
+		result = it != end;
+		BOOST_TEST(result);
 		BOOST_TEST(it->str() == std::to_string(count));
 		++it;
-		BOOST_TEST(it != end);
+		result = it != end;
+		BOOST_TEST(result);
 		BOOST_TEST(test_data->array_data[StringToSizeT(it->str())] != 0);
-
-		CloseHandle(thread);
-		ResetEvents();
-		ClearArray();
 	}
 
-	BOOST_AUTO_TEST_CASE
+	BOOST_FIXTURE_TEST_CASE
 	(
 		marker_exit,
-		* boost::unit_test::depends_on("marker_tests_single_win/marker_result")
+		SingleMarkerFixtureWin
 	)
 	{
-		thread = CreateThread(NULL, NULL, marker, reinterpret_cast<LPVOID*>(&test_data), NULL, &id);
+		thread = CreateThread(NULL, NULL, marker, reinterpret_cast<LPVOID*>(test_data), NULL, &id);
+		Sleep(sleep_for);
 		PulseEvent(test_data->start_threads_event);
 		WaitForSingleObject(test_data->thread_stopped_event, INFINITE);
 
@@ -186,15 +167,13 @@ BOOST_FIXTURE_TEST_SUITE(marker_tests_single_win, SingleMarkerFixtureWin)
 		DWORD wait_res = WaitForSingleObject(thread, wait_for);
 
 		BOOST_TEST(wait_res == 0);
-
-		CloseHandle(thread);
-		ResetEvents();
-		ClearArray();
+		for (size_t i = 0; i < test_data->array_size; i++)
+		{
+			BOOST_TEST(test_data->array_data[i] == 0);
+		}
 	}
-	
-	*/
-BOOST_AUTO_TEST_SUITE_END()
 
+BOOST_AUTO_TEST_SUITE_END()
 
 #elif defined (USE_BOOST)
 
@@ -227,6 +206,7 @@ struct SingleMarkerFixtureBoost
 	SingleMarkerFixtureBoost(size_t size = 40) :
 		sleep_for(30),
 		out(),
+		thread(nullptr),
 		redirect(out.rdbuf()),
 		output_mutex(),
 		array_mutex(),
@@ -235,48 +215,28 @@ struct SingleMarkerFixtureBoost
 	{
 		array_size = size;
 		array = new int[array_size];
+		for (size_t i = 0; i < array_size; i++)
+		{
+			array[i] = 0;
+		}
 		thread_number = 1;
 		response_events = new MultiEvent * [1];
 		response_events[0] = new MultiEvent(2);
 	}
 	~SingleMarkerFixtureBoost()
 	{
+		thread->interrupt();
 		delete[] array;
 		delete response_events[0];
 	}
-
-	void ClearArray()
-	{
-		for (size_t i = 0; i < array_size; i++)
-		{
-			array[i] = 0;
-		}
-	}
-
-	void Resize_array(size_t new_size)
-	{
-		delete array;
-		array = new int[new_size];
-		array_size = new_size;
-	}
-
-	void ResetEvents()
-	{
-		start_threads_event.Reset();
-		thread_stopped_event.ResetAll();
-		response_events[0]->ResetAll();
-	}
 };
 
-BOOST_FIXTURE_TEST_SUITE
-(
-	marker_tests_single_boost, 
-	SingleMarkerFixtureBoost
-)
+BOOST_AUTO_TEST_SUITE(marker_tests_single_boost)
 
-	BOOST_AUTO_TEST_CASE
+	BOOST_FIXTURE_TEST_CASE
 	(
-		marker_init_boost
+		marker_init_boost,
+		SingleMarkerFixtureBoost
 	)
 	{
 		thread = new boost::thread
@@ -292,13 +252,14 @@ BOOST_FIXTURE_TEST_SUITE
 			response_events
 		);
 		boost::this_thread::sleep_for(boost::chrono::milliseconds(sleep_for));
+		redirect.Switch();
 		BOOST_TEST(thread->joinable() != false);
 	}
-
-	BOOST_AUTO_TEST_CASE
+	
+	BOOST_FIXTURE_TEST_CASE
 	(
 		marker_execute_boost,
-		* boost::unit_test::depends_on("marker_tests_single_boost/marker_init")
+		SingleMarkerFixtureBoost,
 		* boost::unit_test::timeout(3)
 	)
 	{
@@ -314,19 +275,15 @@ BOOST_FIXTURE_TEST_SUITE
 			&thread_stopped_event,
 			response_events
 		);
-
+		boost::this_thread::sleep_for(boost::chrono::milliseconds(sleep_for));
 		start_threads_event.Set();
 		thread_stopped_event.WaitAll();
-
-		thread->interrupt();
-		ResetEvents();
-		ClearArray();
 	}
-
-	BOOST_AUTO_TEST_CASE
+	
+	BOOST_FIXTURE_TEST_CASE
 	(
 		marker_result_boost,
-		*boost::unit_test::depends_on("marker_tests_single_boost/marker_execute")
+		SingleMarkerFixtureBoost
 	)
 	{
 		thread = new boost::thread
@@ -341,10 +298,13 @@ BOOST_FIXTURE_TEST_SUITE
 			&thread_stopped_event,
 			response_events
 		);
-
+		boost::this_thread::sleep_for(boost::chrono::milliseconds(sleep_for));
 		start_threads_event.Set();
 		thread_stopped_event.WaitAll();
 
+		std::string res = out.str();
+
+		redirect.Switch();
 		size_t count = 0;
 		for (size_t i = 0; i < array_size; i++)
 		{
@@ -355,31 +315,29 @@ BOOST_FIXTURE_TEST_SUITE
 			}
 		}
 
-		std::string res = out.str();
-
 		boost::regex expression("[0-9]+");
 		boost::sregex_iterator it(res.begin(), res.end(), expression);
 		boost::sregex_iterator end;
 
-		BOOST_TEST(it != end);
+		bool result = it != end;
+		BOOST_TEST(result == true);
 		BOOST_TEST(it->str() == std::to_string(thread_number));
 		++it;
-		BOOST_TEST(it != end);
+		result = it != end;
+		BOOST_TEST(result == true);
 		BOOST_TEST(it->str() == std::to_string(count));
 		++it;
-		BOOST_TEST(it != end);
+		result = it != end;
+		BOOST_TEST(result == true);
 		BOOST_TEST(array[StringToSizeT(it->str())] != 0);
 
 		thread->interrupt();
-		ResetEvents();
-		ClearArray();
 	}
-
-	BOOST_AUTO_TEST_CASE
+	
+	BOOST_FIXTURE_TEST_CASE
 	(
 		marker_exit_boost,
-		* boost::unit_test::depends_on("marker_tests_single_boost/marker_execute")
-		* boost::unit_test::timeout(3)
+		SingleMarkerFixtureBoost
 	)
 	{
 		thread = new boost::thread
@@ -400,9 +358,11 @@ BOOST_FIXTURE_TEST_SUITE
 
 		response_events[0]->Set(0);
 		thread->join();
-
-		ResetEvents();
-		ClearArray();
+		redirect.Switch();
+		for (size_t i = 0; i < array_size; i++) 
+		{
+			BOOST_TEST(array[i] == 0);
+		}
 	}
 
 BOOST_AUTO_TEST_SUITE_END()
