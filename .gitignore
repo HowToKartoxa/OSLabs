@@ -21,3 +21,9 @@ lab3/x64
 lab3/build
 lab3/dependencies/include/boost
 lab3/dependencies/lib
+
+lab4/*/x64
+lab4/x64
+lab4/build
+#lab4/dependencies/include/
+lab4/dependencies/lib
