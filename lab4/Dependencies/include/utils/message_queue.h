@@ -4,63 +4,59 @@
 #include <fstream>
 #include <string>
 
-#define USE_WINAPI
-
-#if defined(USE_WINAPI)
-
 #include <windows.h>
-
-#elif defined(USE_BOOST)
-
-#include <boost/thread.h>
-
-#endif
 
 class MessageQueue
 {
 private:
 	std::string file_name;
-
-#if defined(USE_WINAPI)
+	bool is_owner;
 
 	HANDLE enq_semaphore;
 	HANDLE deq_semaphore;
 
 	HANDLE file_mutex;
 
-#elif defined(USE_BOOST)
-
-#endif
-
 public:
 	struct Info
 	{
-		long capacity;
-		long size;
-		long front;
+		LONG capacity;
+		LONG size;
+		LONG front;
 
 		Info() : capacity(0l), size(0l), front(0l) {}
-		Info(long _capacity) : capacity(_capacity), size(0l), front(0l) {}
+		Info(LONG _capacity) : capacity(_capacity), size(0l), front(0l) {}
 	};
 	struct Message
 	{
-		char data[21];
+		char data[20];
+		unsigned short author;
 
-		Message() : data("\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0") {}
-		Message(std::string str) : data("\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")
+		Message() : data("\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"), author(0) {}
+		Message(std::string str, unsigned short _author) : data("\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"), author(_author)
 		{
-			for (size_t i = 0; i < 20 && i < str.length(); i++)
+			for (size_t i = 0; i < 19 && i < str.length(); i++)
 			{
 				data[i] = str[i];
 			}
 		}
+
+		Message& operator=(const Message& src)
+		{
+			for (char i = 0; i < 20; i++)
+			{
+				data[i] = src.data[i];
+			}
+			author = src.author;
+			return *this;
+		}
 	};
 
-	MessageQueue(std::string file_name, long number_of_entries, bool create_new = true);
+	MessageQueue(std::string file_name, LONG number_of_entries, bool own = true);
 	~MessageQueue();
 
-	void Enqueue(Message message, DWORD wait_for = INFINITE);
-	Message Dequeue(DWORD wait_for = INFINITE);
+	void WEnqueue(Message message, DWORD wait_for = INFINITE);
+	Message WDequeue(DWORD wait_for = INFINITE);
 };
 
 #endif

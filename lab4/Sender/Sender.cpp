@@ -1,32 +1,75 @@
-#include <utils/input_parsing.h>
 #include <utils/message_queue.h>
+#include <utils/input_parsing.h>
 
 #include <iostream>
-#include <string>
-#include <fstream>
+#include <windows.h>
 
-int main(int argc, char** argv) 
+int main(int argc, char** argv)
 {
+	if (argc < 3)
+	{
+		std::cout << "Too few arguments passed!";
+		system("pause");
+		return -1;
+	}
+
+	std::cout << "Sender [ " << argv[2] << " ]\n";
+	unsigned short sender_num = std::atoi(argv[2]);
+
+	HANDLE process_start_event = OpenEventA(EVENT_MODIFY_STATE | SYNCHRONIZE, FALSE, (std::string("SENDER_") + argv[2] + "_STARTED").c_str());
+	if (process_start_event == NULL)
+	{
+		std::cout << "Failed to open start event!";
+		system("pause");
+		return -1;
+	}
+
+	SetEvent(process_start_event);
+
 	std::string temp_string;
 
-	std::cout << "Enter the binary file name:\n";
+	std::cout << "Enter 0 to exit, othervise enter a number of messages to send: ";
 	std::getline(std::cin, temp_string);
-	while (!CheckFileName(temp_string, ""))
+	while (!CheckIfUnsignedShort(temp_string))
 	{
-		std::cout << "Enter the binary file name:\n";
+		std::cout << "Enter 0 to exit, othervise enter a number of messages to send: ";
 		std::getline(std::cin, temp_string);
 	}
+	unsigned short user_input = std::stoi(temp_string);
 
-	std::fstream binary_file(temp_string, std::ios::binary);
-
-	std::cout << "Enter the number of message entries in the binary file:\n";
-	std::getline(std::cin, temp_string);
-	while (!CheckIfSizeT(temp_string))
+	if (user_input)
 	{
-		std::cout << "Enter the number of message entries in the binary file:\n";
-		std::getline(std::cin, temp_string);
+		MessageQueue queue(argv[1], 0l, false);
+		MessageQueue::Message msg;
+
+		while (true)
+		{
+			if (!user_input)
+			{
+				std::cout << "Enter 0 to exit, othervise enter a number of messages to send: ";
+				std::getline(std::cin, temp_string);
+				while (!CheckIfUnsignedShort(temp_string))
+				{
+					std::cout << "Enter 0 to exit, othervise enter a number of messages to send: ";
+					std::getline(std::cin, temp_string);
+				}
+				user_input = std::stoi(temp_string);
+				if (!user_input)
+				{
+					break;
+				}
+			}
+			std::cout << "--> ";
+			std::getline(std::cin, temp_string);
+			if (temp_string.length() > 19)
+			{
+				std::cout << "Message too long, will send only the first 19 characters!\n";
+			}
+			msg = MessageQueue::Message(temp_string, sender_num);
+			queue.WEnqueue(msg);
+			user_input--;
+		}
 	}
-
-	size_t number_of_file_entries = StringToSizeT(temp_string);
-
+	system("pause");
+	return 0;
 }
