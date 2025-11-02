@@ -23,10 +23,10 @@ private:
 
 	HANDLE output_mutex;
 	HANDLE array_mutex;
-	HANDLE start_threads_event;
 
 	HANDLE* threads_stopped_events;
 	HANDLE* threads;
+	HANDLE* start_threads_events;
 
 	DWORD* threads_ids;
 

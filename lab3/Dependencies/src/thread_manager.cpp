@@ -31,12 +31,6 @@ DWORD ThreadManager::InitializeCommonHandles()
 		return HandleError("failed to create array mutex!");
 	}
 
-	start_threads_event = CreateEventA(NULL, TRUE, FALSE, "START_THREADS_EVENT");
-	if (start_threads_event == NULL)
-	{
-		return HandleError("failed to create start threads event!");
-	}
-
 	return 0;
 }
 
@@ -45,6 +39,7 @@ DWORD ThreadManager::InitializeThreads()
 	threads_stopped_events = new HANDLE[number_of_threads];
 	threads = new HANDLE[number_of_threads];
 	threads_ids = new DWORD[number_of_threads];
+	start_threads_events = new HANDLE[number_of_threads];
 
 	threads_parameter_data = new MarkerParameterData[number_of_threads];
 
@@ -55,7 +50,13 @@ DWORD ThreadManager::InitializeThreads()
 		threads_parameter_data[i].thread_number = i + 1;
 		threads_parameter_data[i].output_mutex = output_mutex;
 		threads_parameter_data[i].array_mutex = array_mutex;
-		threads_parameter_data[i].start_threads_event = start_threads_event;
+		
+		start_threads_events[i] = CreateEventA(NULL, TRUE, FALSE, ("THREAD_" + std::to_string(i) + "_START").c_str());
+		if (start_threads_events[i] == NULL)
+		{
+			return HandleError(std::string("failed to create thread start event for thread " + i + '!'));
+		}
+		threads_parameter_data[i].start_threads_event = start_threads_events[i];
 
 		threads_stopped_events[i] = CreateEventA(NULL, TRUE, FALSE, ("THREAD_" + std::to_string(i) + "_STOPPED").c_str());
 		if (threads_stopped_events[i] == NULL)
@@ -84,7 +85,11 @@ DWORD ThreadManager::InitializeThreads()
 DWORD ThreadManager::Operate() 
 {
 	Sleep(25 * number_of_threads);
-	PulseEvent(start_threads_event);
+	
+	for (unsigned short i = 0; i < number_of_threads; i++)
+	{
+		SetEvent(start_threads_events[i]);
+	}
 
 	active_threads = number_of_threads;
 
@@ -121,11 +126,16 @@ DWORD ThreadManager::Operate()
 
 		std::cout << "\nArray after marker thread of number " << thread_to_kill_number << " exited:\n";
 		PrintArray();
-
+		
 		KillThread(thread_to_kill_index);
 		active_threads--;
 
-		PulseEvent(start_threads_event);
+		for (unsigned short i = 0; i < number_of_threads; i++)
+		{
+			SetEvent(start_threads_events[i]);
+			ResetEvent(threads_stopped_events[i]);
+		}
+
 		Sleep(25 * active_threads);
 	}
 
@@ -194,6 +204,7 @@ void ThreadManager::PrintArray()
 ThreadManager::~ThreadManager() 
 {
 	delete[] threads_stopped_events;
+	delete[] start_threads_events;
 	delete[] threads;
 	delete[] threads_ids;
 	delete[] threads_parameter_data;

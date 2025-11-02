@@ -9,6 +9,7 @@ DWORD WINAPI marker(LPVOID args)
 	MarkerParameterData& data = *reinterpret_cast<MarkerParameterData*>(args);
 
 	WaitForSingleObject(data.start_threads_event, INFINITE);
+	ResetEvent(data.start_threads_event);
 
 	srand(data.thread_number);
 
@@ -47,6 +48,10 @@ DWORD WINAPI marker(LPVOID args)
 					marked_elements.pop();
 				}
 				break;
+			}
+			else
+			{
+				ResetEvent(response_events[1]);
 			}
 		}
 		else 
