@@ -1,8 +1,26 @@
 #include <utils/input_parsing.h>
-#include <utils/message_queue.h>
 
 #include <iostream>
 #include <string>
+
+#include <windows.h>
+
+#ifndef USE_BOOST
+
+#define USE_BOOST
+
+#endif
+
+#if defined(USE_WINAPI)
+
+#include <utils/message_queue.h>
+
+#elif defined(USE_BOOST)
+
+#include <utils/message_queue_boost.h>
+
+#endif
+
 
 int main(int argc, char** argv)
 {
@@ -51,6 +69,7 @@ int main(int argc, char** argv)
 		senders_started_events[i] = CreateEventA(NULL, TRUE, FALSE, (std::string("SENDER_") + std::to_string(i) + "_STARTED").c_str());
 		if (senders_started_events[i] == NULL)
 		{
+			std::cout << "Failed to create start event for sender process " << i << " !";
 			system("pause");
 			return -1;
 		}
@@ -68,6 +87,7 @@ int main(int argc, char** argv)
 			&senders_process_info[i]
 		))
 		{
+			std::cout << "Failed to create sender process " << i << " !";
 			system("pause");
 			return -1;
 		}
@@ -75,7 +95,6 @@ int main(int argc, char** argv)
 
 	WaitForMultipleObjects(number_of_senders, senders_started_events, TRUE, INFINITE);
 
-	
 	std::cout << "Enter 0 to exit, othervise enter a number of messages to wait for: ";
 	std::getline(std::cin, temp_string);
 	while (!CheckIfUnsignedShort(temp_string))

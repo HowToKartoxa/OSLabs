@@ -1,8 +1,25 @@
-#include <utils/message_queue.h>
 #include <utils/input_parsing.h>
 
 #include <iostream>
 #include <windows.h>
+
+#include <windows.h>
+
+#ifndef USE_BOOST
+
+#define USE_BOOST
+
+#endif
+
+#if defined(USE_WINAPI)
+
+#include <utils/message_queue.h>
+
+#elif defined(USE_BOOST)
+
+#include <utils/message_queue_boost.h>
+
+#endif
 
 int main(int argc, char** argv)
 {

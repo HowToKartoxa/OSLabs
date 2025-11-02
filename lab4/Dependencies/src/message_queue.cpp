@@ -1,5 +1,7 @@
 #include <utils/message_queue.h>
+
 #include <iostream>
+#include <stdexcept>
 
 // file layout:
 
@@ -40,17 +42,17 @@ MessageQueue::MessageQueue(std::string _file_name, LONG number_of_entries, bool 
 		enq_semaphore = CreateSemaphoreA(NULL, number_of_entries, number_of_entries, (file_name + "_MSG_Q_ENQ_SEM").c_str());
 		if (enq_semaphore == NULL)
 		{
-			
+			throw std::runtime_error("Failed to create enqueue semaphore in Myqueue constructor");
 		}
 		deq_semaphore = CreateSemaphoreA(NULL, 0l, number_of_entries, (file_name + "_MSG_Q_DEQ_SEM").c_str());
 		if (deq_semaphore == NULL)
 		{
-
+			throw std::runtime_error("Failed to create dequeue semaphore in Myqueue constructor");
 		}
 		file_mutex = CreateMutexA(NULL, FALSE, (file_name + "_MSG_Q_MTX").c_str());
 		if (file_mutex == NULL)
 		{
-
+			throw std::runtime_error("Failed to create file mutex in Myqueue constructor");
 		}
 		file.close();
 	}
@@ -59,17 +61,17 @@ MessageQueue::MessageQueue(std::string _file_name, LONG number_of_entries, bool 
 		enq_semaphore = OpenSemaphoreA(SEMAPHORE_ALL_ACCESS, FALSE, (file_name + "_MSG_Q_ENQ_SEM").c_str());
 		if (enq_semaphore == NULL)
 		{
-
+			throw std::runtime_error("Failed to open enqueue semaphore in Myqueue constructor");
 		}
 		deq_semaphore = OpenSemaphoreA(SEMAPHORE_ALL_ACCESS, FALSE, (file_name + "_MSG_Q_DEQ_SEM").c_str());
 		if (deq_semaphore == NULL)
 		{
-
+			throw std::runtime_error("Failed to open dequeue semaphore in Myqueue constructor");
 		}
 		file_mutex = OpenMutexA(SYNCHRONIZE, FALSE, (file_name + "_MSG_Q_MTX").c_str());
 		if (file_mutex == NULL)
 		{
-
+			throw std::runtime_error("Failed to open file mutex in Myqueue constructor");
 		}
 	}
 }
