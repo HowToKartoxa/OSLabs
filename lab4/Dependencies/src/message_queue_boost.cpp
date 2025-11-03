@@ -53,6 +53,7 @@ MessageQueue::~MessageQueue()
 		delete enq_semaphore;
 		delete deq_semaphore;
 		delete file_mutex;
+		std::remove(file_name.c_str());
 	}
 }
 

@@ -28,6 +28,25 @@ MessageQueue::MessageQueue(std::string _file_name, LONG number_of_entries, bool 
 {
 	if (is_owner)
 	{
+		enq_semaphore = OpenSemaphoreA(SEMAPHORE_ALL_ACCESS, FALSE, (file_name + "_MSG_Q_ENQ_SEM").c_str());
+		if (enq_semaphore != NULL)
+		{
+			CloseHandle(enq_semaphore);
+			throw std::runtime_error("Failed to create enqueue semaphore in Myqueue constructor because semaphore with this name already exists");
+		}
+		deq_semaphore = OpenSemaphoreA(SEMAPHORE_ALL_ACCESS, FALSE, (file_name + "_MSG_Q_DEQ_SEM").c_str());
+		if (deq_semaphore != NULL)
+		{
+			CloseHandle(deq_semaphore);
+			throw std::runtime_error("Failed to create dequeue semaphore in Myqueue constructor because semaphore with this name already exists");
+		}
+		file_mutex = OpenMutexA(SYNCHRONIZE, FALSE, (file_name + "_MSG_Q_MTX").c_str());
+		if (file_mutex != NULL)
+		{
+			CloseHandle(file_mutex);
+			throw std::runtime_error("Failed to create file mutex in Myqueue constructor because mutex with this name already exists");
+		}
+
 		enq_semaphore = CreateSemaphoreA(NULL, number_of_entries, number_of_entries, (file_name + "_MSG_Q_ENQ_SEM").c_str());
 		if (enq_semaphore == NULL)
 		{
@@ -79,11 +98,12 @@ MessageQueue::MessageQueue(std::string _file_name, LONG number_of_entries, bool 
 
 MessageQueue::~MessageQueue()
 {
+	if (enq_semaphore != NULL) CloseHandle(enq_semaphore);
+	if (deq_semaphore != NULL) CloseHandle(deq_semaphore);
+	if (file_mutex != NULL) CloseHandle(file_mutex);
 	if (is_owner)
 	{
-		CloseHandle(enq_semaphore);
-		CloseHandle(deq_semaphore);
-		CloseHandle(file_mutex);
+		std::remove(file_name.c_str());
 	}
 }
 

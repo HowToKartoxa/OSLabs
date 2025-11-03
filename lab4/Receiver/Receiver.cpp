@@ -5,6 +5,12 @@
 
 #include <windows.h>
 
+#ifndef USE_BOOST
+
+#define USE_BOOST
+
+#endif
+
 #if defined(USE_WINAPI)
 
 #include <utils/message_queue.h>
