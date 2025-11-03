@@ -57,8 +57,11 @@ public:
 	MessageQueue(std::string file_name, unsigned int number_of_entries, bool own = true);
 	~MessageQueue();
 
-	void WEnqueue(Message message);
-	Message WDequeue();
+
+	bool WEnqueue(Message message);
+	bool WDequeue(Message& destination);
+	bool WEnqueue(Message message, boost::chrono::milliseconds wait_for);
+	bool WDequeue(Message& destination, boost::chrono::milliseconds wait_for);
 };
 
 #endif

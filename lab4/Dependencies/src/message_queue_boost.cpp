@@ -56,10 +56,17 @@ MessageQueue::~MessageQueue()
 	}
 }
 
-void MessageQueue::WEnqueue(MessageQueue::Message message)
+bool MessageQueue::WEnqueue(Message message)
 {
-	enq_semaphore->wait();
-	file_mutex->lock();
+	try
+	{
+		enq_semaphore->wait();
+		file_mutex->lock();
+	}
+	catch (boost::interprocess::interprocess_exception e)
+	{
+		return false;
+	}
 
 	std::fstream file(file_name, std::ios::binary | std::ios::in | std::ios::out);
 
@@ -77,21 +84,28 @@ void MessageQueue::WEnqueue(MessageQueue::Message message)
 	
 	file_mutex->unlock();
 	deq_semaphore->post();
+	return true;
 }
 
-MessageQueue::Message MessageQueue::WDequeue()
+bool MessageQueue::WDequeue(Message& destination)
 {
-	deq_semaphore->wait();
-	file_mutex->lock();
+	try
+	{
+		deq_semaphore->wait();
+		file_mutex->lock();
+	}
+	catch (boost::interprocess::interprocess_exception e)
+	{
+		return false;
+	}
 
 	std::fstream file(file_name, std::ios::binary | std::ios::in | std::ios::out);
 
 	Info info;
 	file.read(reinterpret_cast<char*>(&info), sizeof(Info));
 
-	Message res;
 	file.seekg(sizeof(Info) + sizeof(Message) * info.front, std::ios::beg);
-	file.read(reinterpret_cast<char*>(&res), sizeof(Message));
+	file.read(reinterpret_cast<char*>(&destination), sizeof(Message));
 
 	info.front = (info.front + 1) % info.capacity;
 	info.size--;
@@ -102,5 +116,74 @@ MessageQueue::Message MessageQueue::WDequeue()
 	
 	file_mutex->unlock();
 	enq_semaphore->post();
-	return res;
+	return true;
+}
+
+bool MessageQueue::WEnqueue(Message message, boost::chrono::milliseconds wait_for)
+{
+	try
+	{
+		if (!enq_semaphore->timed_wait(wait_for))
+		{
+			return false;
+		}
+		file_mutex->lock();
+	}
+	catch (boost::interprocess::interprocess_exception e)
+	{
+		return false;
+	}
+
+	std::fstream file(file_name, std::ios::binary | std::ios::in | std::ios::out);
+
+	Info info;
+	file.read(reinterpret_cast<char*>(&info), sizeof(Info));
+
+	file.seekp(sizeof(Info) + sizeof(Message) * ((info.front + info.size) % info.capacity), std::ios::beg);
+	file.write(reinterpret_cast<const char*>(&message), sizeof(Message));
+
+	info.size++;
+	file.seekp(0, std::ios::beg);
+	file.write(reinterpret_cast<const char*>(&info), sizeof(Info));
+
+	file.close();
+
+	file_mutex->unlock();
+	deq_semaphore->post();
+	return true;
+}
+
+bool MessageQueue::WDequeue(Message& destination, boost::chrono::milliseconds wait_for)
+{
+	try
+	{
+		if (!deq_semaphore->timed_wait(wait_for))
+		{
+			return false;
+		}
+		file_mutex->lock();
+	}
+	catch (boost::interprocess::interprocess_exception e)
+	{
+		return false;
+	}
+
+	std::fstream file(file_name, std::ios::binary | std::ios::in | std::ios::out);
+
+	Info info;
+	file.read(reinterpret_cast<char*>(&info), sizeof(Info));
+
+	file.seekg(sizeof(Info) + sizeof(Message) * info.front, std::ios::beg);
+	file.read(reinterpret_cast<char*>(&destination), sizeof(Message));
+
+	info.front = (info.front + 1) % info.capacity;
+	info.size--;
+	file.seekp(0, std::ios::beg);
+	file.write(reinterpret_cast<const char*>(&info), sizeof(Info));
+
+	file.close();
+
+	file_mutex->unlock();
+	enq_semaphore->post();
+	return true;
 }

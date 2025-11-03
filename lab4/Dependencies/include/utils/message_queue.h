@@ -55,8 +55,8 @@ public:
 	MessageQueue(std::string file_name, LONG number_of_entries, bool own = true);
 	~MessageQueue();
 
-	void WEnqueue(Message message, DWORD wait_for = INFINITE);
-	Message WDequeue(DWORD wait_for = INFINITE);
+	bool WEnqueue(Message message, DWORD wait_for = INFINITE);
+	bool WDequeue(Message& destination, DWORD wait_for = INFINITE);
 };
 
 #endif

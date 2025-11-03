@@ -5,12 +5,6 @@
 
 #include <windows.h>
 
-#ifndef USE_BOOST
-
-#define USE_BOOST
-
-#endif
-
 #if defined(USE_WINAPI)
 
 #include <utils/message_queue.h>
@@ -83,7 +77,12 @@ int main(int argc, char** argv)
 				std::cout << "Message too long, will send only the first 19 characters!\n";
 			}
 			msg = MessageQueue::Message(temp_string, sender_num);
-			queue.WEnqueue(msg);
+			if (!queue.WEnqueue(msg))
+			{
+				std::cout << "Failed to wait for a free space in the message queue!";
+				system("pause");
+				return -1;
+			}
 			user_input--;
 		}
 	}

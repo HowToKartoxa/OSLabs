@@ -28,17 +28,6 @@ MessageQueue::MessageQueue(std::string _file_name, LONG number_of_entries, bool 
 {
 	if (is_owner)
 	{
-		std::ofstream file(file_name, std::ios::binary);
-
-		Info info(number_of_entries);
-		file.write(reinterpret_cast<const char*>(&info), sizeof(Info));
-
-		Message placeholder;
-		for (LONG i = 0; i < number_of_entries; i++)
-		{
-			file.write(reinterpret_cast<const char*>(&placeholder), sizeof(Message));
-		}
-
 		enq_semaphore = CreateSemaphoreA(NULL, number_of_entries, number_of_entries, (file_name + "_MSG_Q_ENQ_SEM").c_str());
 		if (enq_semaphore == NULL)
 		{
@@ -54,6 +43,18 @@ MessageQueue::MessageQueue(std::string _file_name, LONG number_of_entries, bool 
 		{
 			throw std::runtime_error("Failed to create file mutex in Myqueue constructor");
 		}
+
+		std::ofstream file(file_name, std::ios::binary);
+
+		Info info(number_of_entries);
+		file.write(reinterpret_cast<const char*>(&info), sizeof(Info));
+
+		Message placeholder;
+		for (LONG i = 0; i < number_of_entries; i++)
+		{
+			file.write(reinterpret_cast<const char*>(&placeholder), sizeof(Message));
+		}
+
 		file.close();
 	}
 	else
@@ -86,10 +87,18 @@ MessageQueue::~MessageQueue()
 	}
 }
 
-void MessageQueue::WEnqueue(MessageQueue::Message message, DWORD wait_for)
+bool MessageQueue::WEnqueue(MessageQueue::Message message, DWORD wait_for)
 {
-	WaitForSingleObject(enq_semaphore, wait_for);
-	WaitForSingleObject(file_mutex, INFINITE);
+	DWORD wait_res = WaitForSingleObject(enq_semaphore, wait_for);
+	if (wait_res != WAIT_OBJECT_0)
+	{
+		return false;
+	}
+	wait_res = WaitForSingleObject(file_mutex, INFINITE);
+	if (wait_res != WAIT_OBJECT_0)
+	{
+		return false;
+	}
 
 	std::fstream file(file_name, std::ios::binary | std::ios::in | std::ios::out);
 
@@ -107,21 +116,29 @@ void MessageQueue::WEnqueue(MessageQueue::Message message, DWORD wait_for)
 
 	ReleaseMutex(file_mutex);
 	ReleaseSemaphore(deq_semaphore, 1, NULL);
+	return true;
 }
 
-MessageQueue::Message MessageQueue::WDequeue(DWORD wait_for)
+bool MessageQueue::WDequeue(Message& destination, DWORD wait_for)
 {
-	WaitForSingleObject(deq_semaphore, wait_for);
-	WaitForSingleObject(file_mutex, INFINITE);
+	DWORD wait_res = WaitForSingleObject(deq_semaphore, wait_for);
+	if (wait_res != WAIT_OBJECT_0)
+	{
+		return false;
+	}
+	wait_res = WaitForSingleObject(file_mutex, INFINITE);
+	if (wait_res != WAIT_OBJECT_0)
+	{
+		return false;
+	}
 
 	std::fstream file(file_name, std::ios::binary | std::ios::in | std::ios::out);
 
 	Info info;
 	file.read(reinterpret_cast<char*>(&info), sizeof(Info));
 
-	Message res;
 	file.seekg(sizeof(Info) + sizeof(Message) * info.front, std::ios::beg);
-	file.read(reinterpret_cast<char*>(&res), sizeof(Message));
+	file.read(reinterpret_cast<char*>(&destination), sizeof(Message));
 
 	info.front = (info.front + 1) % info.capacity;
 	info.size--;
@@ -131,5 +148,5 @@ MessageQueue::Message MessageQueue::WDequeue(DWORD wait_for)
 	file.close();
 	ReleaseMutex(file_mutex);
 	ReleaseSemaphore(enq_semaphore, 1, NULL);
-	return res;
+	return true;
 }

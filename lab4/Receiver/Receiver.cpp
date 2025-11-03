@@ -5,12 +5,6 @@
 
 #include <windows.h>
 
-#ifndef USE_BOOST
-
-#define USE_BOOST
-
-#endif
-
 #if defined(USE_WINAPI)
 
 #include <utils/message_queue.h>
@@ -124,7 +118,12 @@ int main(int argc, char** argv)
 					break;
 				}
 			}
-			msg = queue.WDequeue();
+			if (!queue.WDequeue(msg))
+			{
+				std::cout << "Failed to wait for a message!";
+				system("pause");
+				return -1;
+			}
 			std::cout << "MESSAGE FROM [ " << msg.author << " ]: " << msg.data << '\n';
 			user_input--;
 		}
