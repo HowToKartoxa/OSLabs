@@ -1,0 +1,172 @@
+#include <utils/message_queue.h>
+
+#include <iostream>
+#include <stdexcept>
+
+// file layout:
+
+////////////////////////
+//      capacity      // 
+//        size        // 
+//        front       //  
+// entry slot 0       // 
+// entry slot 1       // 
+// entry slot 2       // 
+// entry slot 3       // 
+// entry slot 4       // 
+//         .          //
+//         .          //	
+//         .          //
+// entry slot cap - 3 // 
+// entry slot cap - 2 // 
+// entry slot cap - 1 // 
+////////////////////////
+
+MessageQueue::MessageQueue(std::string _file_name, LONG number_of_entries, bool own) :
+	file_name(_file_name),
+	is_owner(own)
+{
+	if (is_owner)
+	{
+		enq_semaphore = OpenSemaphoreA(SEMAPHORE_ALL_ACCESS, FALSE, (file_name + "_MSG_Q_ENQ_SEM").c_str());
+		if (enq_semaphore != NULL)
+		{
+			CloseHandle(enq_semaphore);
+			throw std::runtime_error("Failed to create enqueue semaphore in Myqueue constructor because semaphore with this name already exists");
+		}
+		deq_semaphore = OpenSemaphoreA(SEMAPHORE_ALL_ACCESS, FALSE, (file_name + "_MSG_Q_DEQ_SEM").c_str());
+		if (deq_semaphore != NULL)
+		{
+			CloseHandle(deq_semaphore);
+			throw std::runtime_error("Failed to create dequeue semaphore in Myqueue constructor because semaphore with this name already exists");
+		}
+		file_mutex = OpenMutexA(SYNCHRONIZE, FALSE, (file_name + "_MSG_Q_MTX").c_str());
+		if (file_mutex != NULL)
+		{
+			CloseHandle(file_mutex);
+			throw std::runtime_error("Failed to create file mutex in Myqueue constructor because mutex with this name already exists");
+		}
+
+		enq_semaphore = CreateSemaphoreA(NULL, number_of_entries, number_of_entries, (file_name + "_MSG_Q_ENQ_SEM").c_str());
+		if (enq_semaphore == NULL)
+		{
+			throw std::runtime_error("Failed to create enqueue semaphore in Myqueue constructor");
+		}
+		deq_semaphore = CreateSemaphoreA(NULL, 0l, number_of_entries, (file_name + "_MSG_Q_DEQ_SEM").c_str());
+		if (deq_semaphore == NULL)
+		{
+			throw std::runtime_error("Failed to create dequeue semaphore in Myqueue constructor");
+		}
+		file_mutex = CreateMutexA(NULL, FALSE, (file_name + "_MSG_Q_MTX").c_str());
+		if (file_mutex == NULL)
+		{
+			throw std::runtime_error("Failed to create file mutex in Myqueue constructor");
+		}
+
+		std::ofstream file(file_name, std::ios::binary);
+
+		Info info(number_of_entries);
+		file.write(reinterpret_cast<const char*>(&info), sizeof(Info));
+
+		Message placeholder;
+		for (LONG i = 0; i < number_of_entries; i++)
+		{
+			file.write(reinterpret_cast<const char*>(&placeholder), sizeof(Message));
+		}
+
+		file.close();
+	}
+	else
+	{
+		enq_semaphore = OpenSemaphoreA(SEMAPHORE_ALL_ACCESS, FALSE, (file_name + "_MSG_Q_ENQ_SEM").c_str());
+		if (enq_semaphore == NULL)
+		{
+			throw std::runtime_error("Failed to open enqueue semaphore in Myqueue constructor");
+		}
+		deq_semaphore = OpenSemaphoreA(SEMAPHORE_ALL_ACCESS, FALSE, (file_name + "_MSG_Q_DEQ_SEM").c_str());
+		if (deq_semaphore == NULL)
+		{
+			throw std::runtime_error("Failed to open dequeue semaphore in Myqueue constructor");
+		}
+		file_mutex = OpenMutexA(SYNCHRONIZE, FALSE, (file_name + "_MSG_Q_MTX").c_str());
+		if (file_mutex == NULL)
+		{
+			throw std::runtime_error("Failed to open file mutex in Myqueue constructor");
+		}
+	}
+}
+
+MessageQueue::~MessageQueue()
+{
+	if (enq_semaphore != NULL) CloseHandle(enq_semaphore);
+	if (deq_semaphore != NULL) CloseHandle(deq_semaphore);
+	if (file_mutex != NULL) CloseHandle(file_mutex);
+	if (is_owner)
+	{
+		std::remove(file_name.c_str());
+	}
+}
+
+bool MessageQueue::WEnqueue(MessageQueue::Message message, DWORD wait_for)
+{
+	DWORD wait_res = WaitForSingleObject(enq_semaphore, wait_for);
+	if (wait_res != WAIT_OBJECT_0)
+	{
+		return false;
+	}
+	wait_res = WaitForSingleObject(file_mutex, INFINITE);
+	if (wait_res != WAIT_OBJECT_0)
+	{
+		return false;
+	}
+
+	std::fstream file(file_name, std::ios::binary | std::ios::in | std::ios::out);
+
+	Info info;
+	file.read(reinterpret_cast<char*>(&info), sizeof(Info));
+
+	file.seekp(sizeof(Info) + sizeof(Message) * ((info.front + info.size) % info.capacity), std::ios::beg);
+	file.write(reinterpret_cast<const char*>(&message), sizeof(Message));
+
+	info.size++;
+	file.seekp(0, std::ios::beg);
+	file.write(reinterpret_cast<const char*>(&info), sizeof(Info));
+
+	file.close();
+
+	ReleaseMutex(file_mutex);
+	ReleaseSemaphore(deq_semaphore, 1, NULL);
+	return true;
+}
+
+bool MessageQueue::WDequeue(Message& destination, DWORD wait_for)
+{
+	DWORD wait_res = WaitForSingleObject(deq_semaphore, wait_for);
+	if (wait_res != WAIT_OBJECT_0)
+	{
+		return false;
+	}
+	wait_res = WaitForSingleObject(file_mutex, INFINITE);
+	if (wait_res != WAIT_OBJECT_0)
+	{
+		return false;
+	}
+
+	std::fstream file(file_name, std::ios::binary | std::ios::in | std::ios::out);
+
+	Info info;
+	file.read(reinterpret_cast<char*>(&info), sizeof(Info));
+
+	file.seekg(sizeof(Info) + sizeof(Message) * info.front, std::ios::beg);
+	file.read(reinterpret_cast<char*>(&destination), sizeof(Message));
+
+	info.front = (info.front + 1) % info.capacity;
+	info.size--;
+	file.seekp(0, std::ios::beg);
+	file.write(reinterpret_cast<const char*>(&info), sizeof(Info));
+
+	file.close();
+	ReleaseMutex(file_mutex);
+	ReleaseSemaphore(enq_semaphore, 1, NULL);
+	return true;
+}
