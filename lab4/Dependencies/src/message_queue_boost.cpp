@@ -24,13 +24,14 @@
 
 MessageQueue::MessageQueue(std::string _file_name, unsigned int number_of_entries, bool own) :
 	file_name(_file_name),
-	is_owner(own),
-	enq_semaphore(new boost::interprocess::named_semaphore(boost::interprocess::open_or_create, (file_name + "_MSG_Q_ENQ_SEM").c_str(), number_of_entries)),
-	deq_semaphore(new boost::interprocess::named_semaphore(boost::interprocess::open_or_create, (file_name + "_MSG_Q_DEQ_SEM").c_str(), 0u)),
-	file_mutex(new boost::interprocess::named_mutex(boost::interprocess::open_or_create, (file_name + "_MSG_Q_MTX").c_str()))
+	is_owner(own)
 {
 	if (is_owner)
 	{
+		enq_semaphore = new boost::interprocess::named_semaphore(boost::interprocess::create_only, (file_name + "_MSG_Q_ENQ_SEM").c_str(), number_of_entries);
+		deq_semaphore = new boost::interprocess::named_semaphore(boost::interprocess::create_only, (file_name + "_MSG_Q_DEQ_SEM").c_str(), 0u);
+		file_mutex = new boost::interprocess::named_mutex(boost::interprocess::create_only, (file_name + "_MSG_Q_MTX").c_str());
+	
 		std::ofstream file(file_name, std::ios::binary);
 
 		Info info(number_of_entries);
@@ -44,17 +45,26 @@ MessageQueue::MessageQueue(std::string _file_name, unsigned int number_of_entrie
 		
 		file.close();
 	}
+	else
+	{
+		enq_semaphore = new boost::interprocess::named_semaphore(boost::interprocess::open_only, (file_name + "_MSG_Q_ENQ_SEM").c_str());
+		deq_semaphore = new boost::interprocess::named_semaphore(boost::interprocess::open_only, (file_name + "_MSG_Q_DEQ_SEM").c_str());
+		file_mutex = new boost::interprocess::named_mutex(boost::interprocess::open_only, (file_name + "_MSG_Q_MTX").c_str());
+	}
 }
 
 MessageQueue::~MessageQueue()
 {
 	if (is_owner)
 	{
-		delete enq_semaphore;
-		delete deq_semaphore;
-		delete file_mutex;
+		enq_semaphore->remove((file_name + "_MSG_Q_ENQ_SEM").c_str());
+		deq_semaphore->remove((file_name + "_MSG_Q_DEQ_SEM").c_str());
+		file_mutex->remove((file_name + "_MSG_Q_MTX").c_str());
 		std::remove(file_name.c_str());
 	}
+	delete enq_semaphore;
+	delete deq_semaphore;
+	delete file_mutex;
 }
 
 bool MessageQueue::WEnqueue(Message message)
@@ -120,7 +130,7 @@ bool MessageQueue::WDequeue(Message& destination)
 	return true;
 }
 
-bool MessageQueue::WEnqueue(Message message, boost::chrono::milliseconds wait_for)
+bool MessageQueue::WEnqueue(Message message, boost::posix_time::ptime wait_for)
 {
 	try
 	{
@@ -154,7 +164,7 @@ bool MessageQueue::WEnqueue(Message message, boost::chrono::milliseconds wait_fo
 	return true;
 }
 
-bool MessageQueue::WDequeue(Message& destination, boost::chrono::milliseconds wait_for)
+bool MessageQueue::WDequeue(Message& destination, boost::posix_time::ptime wait_for)
 {
 	try
 	{

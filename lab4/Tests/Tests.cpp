@@ -161,7 +161,7 @@ struct MessageQueueDupFixtureBoost
 };
 
 BOOST_AUTO_TEST_SUITE(message_queue_boost)
-
+	
 	BOOST_AUTO_TEST_CASE(message_queue_init, * boost::unit_test::timeout(2))
 	{
 		MessageQueue q("test_binary_file", 10);
@@ -178,7 +178,7 @@ BOOST_AUTO_TEST_SUITE(message_queue_boost)
 		std::fstream file("test_binary_file", std::ios::in | std::ios::out);
 		BOOST_TEST(file.is_open() == true);
 	}
-
+	
 	BOOST_FIXTURE_TEST_CASE(message_queue_single_enq_deq, MessageQueueSingleFixtureBoost, * boost::unit_test::timeout(2))
 	{
 		MessageQueue::Message input("test_message", 0);
@@ -192,7 +192,7 @@ BOOST_AUTO_TEST_SUITE(message_queue_boost)
 	BOOST_FIXTURE_TEST_CASE(message_queue_single_empty, MessageQueueSingleFixtureBoost, * boost::unit_test::timeout(2))
 	{
 		MessageQueue::Message res;
-		BOOST_TEST(queue.WDequeue(res, boost::chrono::milliseconds(100)) == false);
+		BOOST_TEST(queue.WDequeue(res, boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(100)) == false);
 	}
 
 	BOOST_FIXTURE_TEST_CASE(message_queue_single_full, MessageQueueSingleFixtureBoost, * boost::unit_test::timeout(2))
@@ -203,7 +203,7 @@ BOOST_AUTO_TEST_SUITE(message_queue_boost)
 			input.data[0] = i + '0';
 			queue.WEnqueue(input);
 		}
-		BOOST_TEST(queue.WEnqueue(input, boost::chrono::milliseconds(100)) == false);
+		BOOST_TEST(queue.WEnqueue(input, boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(100)) == false);
 	}
 
 	BOOST_AUTO_TEST_CASE(message_queue_file_already_exists, * boost::unit_test::timeout(4))
@@ -222,7 +222,7 @@ BOOST_AUTO_TEST_SUITE(message_queue_boost)
 		BOOST_TEST(result.author == input.author);
 		BOOST_TEST(std::strcmp(result.data, input.data) == 0);
 	}
-
+	
 	BOOST_AUTO_TEST_CASE(message_queue_dup_init, * boost::unit_test::timeout(2))
 	{
 		MessageQueue q("test_binary_file", 10);
@@ -240,7 +240,7 @@ BOOST_AUTO_TEST_SUITE(message_queue_boost)
 		std::fstream file("test_binary_file", std::ios::in | std::ios::out);
 		BOOST_TEST(file.is_open() == true);
 	}
-
+	
 	BOOST_FIXTURE_TEST_CASE(message_queue_dup_enq_deq, MessageQueueDupFixtureBoost, * boost::unit_test::timeout(2))
 	{
 		MessageQueue::Message input1("test_message_1", 0);
@@ -259,15 +259,16 @@ BOOST_AUTO_TEST_SUITE(message_queue_boost)
 	BOOST_AUTO_TEST_CASE(message_queue_already_created, * boost::unit_test::timeout(2))
 	{
 		MessageQueue q("test_binary_file", 10);
+		bool passed = false;
 		try
 		{
 			MessageQueue q_new("test_binary_file", 10);
 		}
 		catch (boost::interprocess::interprocess_exception e)
 		{
-			BOOST_TEST(true);
+			passed = true;
 		}
-		BOOST_TEST(false);
+		BOOST_TEST(passed);
 	}
 
 BOOST_AUTO_TEST_SUITE_END()

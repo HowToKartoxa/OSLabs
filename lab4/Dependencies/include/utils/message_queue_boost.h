@@ -7,6 +7,7 @@
 #include <boost/thread.hpp>
 #include <boost/interprocess/sync/named_mutex.hpp>
 #include <boost/interprocess/sync/named_semaphore.hpp>
+#include <boost/date_time.hpp>
 
 class MessageQueue
 {
@@ -60,8 +61,8 @@ public:
 
 	bool WEnqueue(Message message);
 	bool WDequeue(Message& destination);
-	bool WEnqueue(Message message, boost::chrono::milliseconds wait_for);
-	bool WDequeue(Message& destination, boost::chrono::milliseconds wait_for);
+	bool WEnqueue(Message message, boost::posix_time::ptime wait_for);
+	bool WDequeue(Message& destination, boost::posix_time::ptime wait_for);
 };
 
 #endif
