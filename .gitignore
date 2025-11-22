@@ -27,3 +27,9 @@ lab4/x64
 lab4/build
 lab4/dependencies/include/boost
 lab4/dependencies/lib
+
+lab5/*/x64
+lab5/x64
+lab5/build
+#lab5/dependencies/include/
+lab5/dependencies/lib
