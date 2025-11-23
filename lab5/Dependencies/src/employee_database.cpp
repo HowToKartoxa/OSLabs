@@ -98,11 +98,17 @@ DWORD EmployeeDB::WGetAndLock(unsigned int id, Employee& destination, size_t& in
 	return 1ul;
 }
 
-DWORD EmployeeDB::WSetAndUnlock(unsigned int id, Employee& source, size_t& index)
+DWORD EmployeeDB::WSetAndUnlock(unsigned int id, Employee& source, const size_t& index)
 {
 	std::fstream file(name, std::ios::in);
 	file.seekp(sizeof(unsigned int) + index * sizeof(Employee));
 	file.write(reinterpret_cast<char*>(&source), sizeof(Employee));
+	ReleaseSRWLockExclusive(&locks[index]);
+	return 0ul;
+}
+
+DWORD EmployeeDB::WUnlock(const size_t& index)
+{
 	ReleaseSRWLockExclusive(&locks[index]);
 	return 0ul;
 }
