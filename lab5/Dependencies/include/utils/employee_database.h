@@ -2,15 +2,15 @@
 #define _EMPLOYEE_DATABASE
 
 #include <string>
+#include <vector>
 
 #include <windows.h>
 
 class EmployeeDB
 {
 	std::string name;
-	unsigned int count;
 	bool is_owner;
-	HANDLE* write_mutexes;
+	std::vector<SRWLOCK>& locks;
 
 public:
 	struct Employee
@@ -29,10 +29,13 @@ public:
 		}
 	};
 
-	EmployeeDB(std::string _name, Employee* data, int _count, bool own = true);
+	EmployeeDB(std::string name, std::vector<EmployeeDB::Employee>& data, std::vector<SRWLOCK>& locks);
+	EmployeeDB(std::string name, std::vector<SRWLOCK>& locks);
 	~EmployeeDB();
-	DWORD Get(int id, Employee& destination);
-	DWORD Set(int id, const Employee& source);
+	DWORD WGet(unsigned int id, Employee& destination);
+	DWORD WSet(unsigned int id, Employee& source);
+	DWORD WGetAndLock(unsigned int id, Employee& destination, size_t& index);
+	DWORD WSetAndUnlock(unsigned int id, Employee& source, size_t& index);
 };
 
 #endif
