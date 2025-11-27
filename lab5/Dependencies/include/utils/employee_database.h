@@ -36,7 +36,6 @@ public:
 	DWORD WSet(unsigned int id, Employee& source);
 	DWORD WGetAndLock(unsigned int id, Employee& destination, size_t& index);
 	DWORD WSetAndUnlock(unsigned int id, Employee& source, const size_t& index);
-	DWORD WUnlock(const size_t& index);
 };
 
 #endif
