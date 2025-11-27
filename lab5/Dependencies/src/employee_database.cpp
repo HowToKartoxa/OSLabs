@@ -1,10 +1,9 @@
 #include <utils/employee_database.h>
 
 #include <fstream>
-#include <algorithm>
 #include <vector>
 
-EmployeeDB::EmployeeDB(std::string _name, std::vector<EmployeeDB::Employee>& data, std::vector<SRWLOCK>& _locks) : locks(_locks), name(_name), is_owner(true)
+EmployeeDB::EmployeeDB(std::string _name, std::vector<EmployeeDB::Employee>& data, std::vector<SRWLOCK>& _locks) : locks(_locks), name(_name)
 {
 	unsigned int size = data.size();
 
@@ -21,14 +20,9 @@ EmployeeDB::EmployeeDB(std::string _name, std::vector<EmployeeDB::Employee>& dat
 	file.close();
 }
 
-EmployeeDB::EmployeeDB(std::string _name, std::vector<SRWLOCK>& _locks) : locks(_locks), name(_name), is_owner(false){}
-
 EmployeeDB::~EmployeeDB()
 {
-	if (is_owner)
-	{
-		std::remove(name.c_str());
-	}
+	std::remove(name.c_str());
 }
 
 DWORD EmployeeDB::WGet(unsigned int id, Employee& destination)
@@ -103,12 +97,6 @@ DWORD EmployeeDB::WSetAndUnlock(unsigned int id, Employee& source, const size_t&
 	std::fstream file(name, std::ios::in);
 	file.seekp(sizeof(unsigned int) + index * sizeof(Employee));
 	file.write(reinterpret_cast<char*>(&source), sizeof(Employee));
-	ReleaseSRWLockExclusive(&locks[index]);
-	return 0ul;
-}
-
-DWORD EmployeeDB::WUnlock(const size_t& index)
-{
 	ReleaseSRWLockExclusive(&locks[index]);
 	return 0ul;
 }

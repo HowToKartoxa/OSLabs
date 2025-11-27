@@ -9,8 +9,14 @@
 
 class Server
 {
-	std::vector<HANDLE> active_connections;
+	HANDLE* active_connections;
+
 	std::vector<connection_data> active_connections_data;
+	std::vector<STARTUPINFOA> clients_startup_info;
+	std::vector<PROCESS_INFORMATION> clients_process_info;
+
+	HANDLE output_log_mutex;
+
 	EmployeeDB* database;
 
 public:
@@ -40,13 +46,12 @@ DWORD WINAPI client_connection(LPVOID params);
 struct connection_data
 {
 	unsigned short connection_number;
-	std::string database_name;
-	std::vector<SRWLOCK>& locks;
+	EmployeeDB& database;
 
-	connection_data(unsigned int _connection_number, std::string _database_name, std::vector<SRWLOCK>& _locks) : 
-		locks(_locks), 
+	connection_data(unsigned int _connection_number, EmployeeDB& _database) : 
 		connection_number(_connection_number), 
-		database_name(_database_name) {}
+		database(_database) 
+	{}
 };
 
 #endif

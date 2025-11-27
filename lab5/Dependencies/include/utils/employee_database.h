@@ -9,7 +9,6 @@
 class EmployeeDB
 {
 	std::string name;
-	bool is_owner;
 	std::vector<SRWLOCK>& locks;
 
 public:
@@ -30,8 +29,8 @@ public:
 	};
 
 	EmployeeDB(std::string name, std::vector<EmployeeDB::Employee>& data, std::vector<SRWLOCK>& locks);
-	EmployeeDB(std::string name, std::vector<SRWLOCK>& locks);
 	~EmployeeDB();
+
 	DWORD WGet(unsigned int id, Employee& destination);
 	DWORD WSet(unsigned int id, Employee& source);
 	DWORD WGetAndLock(unsigned int id, Employee& destination, size_t& index);
