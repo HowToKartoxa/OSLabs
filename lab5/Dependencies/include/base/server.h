@@ -25,22 +25,6 @@ public:
 	DWORD Operate();
 };
 
-struct message
-{
-	char type;
-	EmployeeDB::Employee data;
-
-	message(char _type, EmployeeDB::Employee _data) : type(_type), data(_data) {}
-};
-
-enum message_types
-{
-	GET,
-	GET_L,
-	SET_L,
-	RESP
-};
-
 DWORD WINAPI client_connection(LPVOID params);
 
 struct connection_data

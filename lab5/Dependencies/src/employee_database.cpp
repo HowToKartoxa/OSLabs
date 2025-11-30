@@ -25,7 +25,7 @@ EmployeeDB::~EmployeeDB()
 	std::remove(name.c_str());
 }
 
-DWORD EmployeeDB::WGet(unsigned int id, Employee& destination)
+DWORD EmployeeDB::WGetShared(unsigned int id, Employee& destination, size_t& index)
 {
 	std::fstream file(name, std::ios::in);
 	unsigned int size;
@@ -34,43 +34,19 @@ DWORD EmployeeDB::WGet(unsigned int id, Employee& destination)
 	{
 		AcquireSRWLockShared(&locks[i]);
 		file.read(reinterpret_cast<char*>(&destination), sizeof(Employee));
-		ReleaseSRWLockShared(&locks[i]);
 		if (destination.id == id)
 		{
+			index = i;
 			file.close();
 			return 0ul;
 		}
-	}
-	file.close();
-	return 1ul;
-}
-
-DWORD EmployeeDB::WSet(unsigned int id, Employee& source)
-{
-	std::fstream file(name, std::ios::in | std::ios::out);
-	unsigned int size;
-	Employee temp;
-	file.read(reinterpret_cast<char*>(&size), sizeof(unsigned int));
-	for (size_t i = 0ull; i < size; i++)
-	{
-		AcquireSRWLockShared(&locks[i]);
-		file.read(reinterpret_cast<char*>(&temp), sizeof(Employee));
 		ReleaseSRWLockShared(&locks[i]);
-		if (temp.id == id)
-		{
-			file.seekp(sizeof(unsigned int) + i * sizeof(Employee));
-			AcquireSRWLockExclusive(&locks[i]);
-			file.write(reinterpret_cast<char*>(&source), sizeof(Employee));
-			ReleaseSRWLockExclusive(&locks[i]);
-			file.close();
-			return 0ul;
-		}
 	}
 	file.close();
 	return 1ul;
 }
 
-DWORD EmployeeDB::WGetAndLock(unsigned int id, Employee& destination, size_t& index)
+DWORD EmployeeDB::WGetExclusive(unsigned int id, Employee& destination, size_t& index)
 {
 	std::fstream file(name, std::ios::in);
 	unsigned int size;
@@ -92,11 +68,22 @@ DWORD EmployeeDB::WGetAndLock(unsigned int id, Employee& destination, size_t& in
 	return 1ul;
 }
 
-DWORD EmployeeDB::WSetAndUnlock(unsigned int id, Employee& source, const size_t& index)
+DWORD EmployeeDB::Set(unsigned int id, Employee& source, const size_t& index)
 {
 	std::fstream file(name, std::ios::in);
 	file.seekp(sizeof(unsigned int) + index * sizeof(Employee));
 	file.write(reinterpret_cast<char*>(&source), sizeof(Employee));
+	return 0ul;
+}
+
+DWORD EmployeeDB::UnlockShared(const size_t& index)
+{
+	ReleaseSRWLockShared(&locks[index]);
+	return 0ul;
+}
+
+DWORD EmployeeDB::UnlockExclusive(const size_t& index)
+{
 	ReleaseSRWLockExclusive(&locks[index]);
 	return 0ul;
 }

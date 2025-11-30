@@ -13,9 +13,11 @@ struct message
 
 enum message_types
 {
-	GET,
-	GET_L,
-	SET_L,
+	GET_SHARED,
+	GET_EXCLUSIVE,
+	SET,
+	UNLOCK_SHARED,
+	UNLOCK_EXCLUSIVE,
 	RESP
 };
 

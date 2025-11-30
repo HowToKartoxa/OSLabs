@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <string>
+#include <limits>
 
 #include <windows.h>
 
@@ -55,7 +56,7 @@ DWORD Server::Operate()
 	active_connections = new HANDLE[number_of_clients];
 
 	HANDLE temp_thread_handle;
-	std::string temp_command_line = "Client.exe ";
+	std::string temp_command_line;
 	DWORD wait_result;
 
 	for (unsigned short i = 0; i < number_of_clients; i++)
@@ -72,7 +73,12 @@ DWORD Server::Operate()
 		clients_process_info.emplace_back();
 		ZeroMemory(&clients_startup_info[i], sizeof(STARTUPINFOA));
 		clients_startup_info[i].cb = sizeof(STARTUPINFOA);
+
+		temp_command_line = "Client.exe ";
 		temp_command_line += std::to_string(i);
+		temp_command_line += " \\\\.\\pipe\\client_pipe_";
+		temp_command_line += std::to_string(i);
+
 		if (!CreateProcessA
 		(
 			NULL,
@@ -146,7 +152,7 @@ DWORD WINAPI client_connection(LPVOID params)
 	std::cout << "CONNECTED TO CLIENT [" << info.connection_number << "]!\n";
 	ReleaseMutex(output_log_mutex);
 
-	message buffer(0, EmployeeDB::Employee(0, "", 0));
+	message buffer(message_types::RESP, EmployeeDB::Employee(0, "", 0));
 	DWORD bytes_read;
 	DWORD bytes_written;
 	size_t locked_at;
@@ -155,11 +161,11 @@ DWORD WINAPI client_connection(LPVOID params)
 	{
 		if (!ReadFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_read, NULL))
 		{
-
+			//
 		}
 		switch (buffer.type)
 		{
-			case message_types::GET: 
+			case message_types::GET_SHARED: 
 			{
 				wait_result = WaitForSingleObject(output_log_mutex, INFINITE);
 				if (wait_result != WAIT_OBJECT_0)
@@ -169,47 +175,101 @@ DWORD WINAPI client_connection(LPVOID params)
 				std::cout << "{GET} " << buffer.data.id << " FROM [" << info.connection_number << "]\n";
 				ReleaseMutex(output_log_mutex);
 
-				if (info.database.WGet(buffer.data.id, buffer.data))
+				if (info.database.WGetShared(buffer.data.id, buffer.data, locked_at))
 				{
 					//
 				}
+
+				buffer.type = message_types::RESP;
 				if (WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
 				{
 					//
 				}
 				break;
 			}
-			case message_types::GET_L: 
+			case message_types::GET_EXCLUSIVE:
 			{
 				wait_result = WaitForSingleObject(output_log_mutex, INFINITE);
 				if (wait_result != WAIT_OBJECT_0)
 				{
 					//
 				}
-				std::cout << "{GET AND LOCK} " << buffer.data.id << " FROM [" << info.connection_number << "]\n";
+				std::cout << "{GET} " << buffer.data.id << " FROM [" << info.connection_number << "]\n";
 				ReleaseMutex(output_log_mutex);
 
-				if (info.database.WGetAndLock(buffer.data.id, buffer.data, locked_at))
+				if (info.database.WGetExclusive(buffer.data.id, buffer.data, locked_at))
 				{
 					//
 				}
+
+				buffer.type = message_types::RESP;
 				if (WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
 				{
 					//
 				}
 				break;
 			}
-			case message_types::SET_L: 
+			case message_types::SET: 
 			{
 				wait_result = WaitForSingleObject(output_log_mutex, INFINITE);
 				if (wait_result != WAIT_OBJECT_0)
 				{
 					//
 				}
-				std::cout << "{SET AND UNLOCK} " << buffer.data.id << " FROM [" << info.connection_number << "]\n";
+				std::cout << "{SET} " << buffer.data.id << " FROM [" << info.connection_number << "]\n";
 				ReleaseMutex(output_log_mutex);
 
-				if (info.database.WSetAndUnlock(buffer.data.id, buffer.data, locked_at))
+				if (info.database.Set(buffer.data.id, buffer.data, locked_at))
+				{
+					//
+				}
+
+				buffer.type = message_types::RESP;
+				if (WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
+				{
+					//
+				}
+				break;
+			}
+			case message_types::UNLOCK_SHARED: 
+			{
+				wait_result = WaitForSingleObject(output_log_mutex, INFINITE);
+				if (wait_result != WAIT_OBJECT_0)
+				{
+					//
+				}
+				std::cout << "{UNLOCK SHARED} " << buffer.data.id << " FROM [" << info.connection_number << "]\n";
+				ReleaseMutex(output_log_mutex);
+
+				if (info.database.UnlockShared(locked_at))
+				{
+					//
+				}
+
+				buffer.type = message_types::RESP;
+				if (WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
+				{
+					//
+				}
+				break;
+			}
+			case message_types::UNLOCK_EXCLUSIVE: 
+			{
+				wait_result = WaitForSingleObject(output_log_mutex, INFINITE);
+				if (wait_result != WAIT_OBJECT_0)
+				{
+					//
+				}
+				std::cout << "{UNLOCK SHARED} " << buffer.data.id << " FROM [" << info.connection_number << "]\n";
+				ReleaseMutex(output_log_mutex);
+
+				if (info.database.UnlockExclusive(locked_at))
+				{
+					//
+				}
+
+				buffer.type = message_types::RESP;
+				if (WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
 				{
 					//
 				}
