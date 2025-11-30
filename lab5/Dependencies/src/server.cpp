@@ -4,7 +4,6 @@
 
 #include <iostream>
 #include <string>
-#include <limits>
 
 #include <windows.h>
 
@@ -53,15 +52,15 @@ DWORD Server::Operate()
 	std::cout << "Initializing clients ...\n";
 
 	unsigned short number_of_clients = Query<unsigned short>("Enter number of client processes:");
-	active_connections = new HANDLE[number_of_clients];
 
 	HANDLE temp_thread_handle;
 	std::string temp_command_line;
+	active_connections = new HANDLE[number_of_clients];
 	DWORD wait_result;
 
 	for (unsigned short i = 0; i < number_of_clients; i++)
 	{
-		active_connections_data.emplace_back(i, database);
+		active_connections_data.emplace_back(i, *database);
 		temp_thread_handle = CreateThread(NULL, NULL, client_connection, &active_connections_data[i], NULL, NULL);
 		if (temp_thread_handle == INVALID_HANDLE_VALUE)
 		{
@@ -104,6 +103,8 @@ DWORD Server::Operate()
 		std::cout << "CLIENT PROCESS [" << i << "] initialized!\n";
 		ReleaseMutex(output_log_mutex);
 	}
+	Sleep(INFINITE);
+	return 0ul;
 }
 
 DWORD WINAPI client_connection(LPVOID params)

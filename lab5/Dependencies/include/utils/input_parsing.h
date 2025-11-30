@@ -2,6 +2,7 @@
 #define INPUT_PARSING_H_
 
 #include <string>
+#include <iostream>
 
 const char kForbiddenFileNameCharacters[12] = "<>|\\/:\"?*\t\n";
 const char kForbiddenFileNames3[4][4] = { "CON", "PRN", "AUX", "NUL" };
@@ -21,7 +22,7 @@ template <typename T>
 T Query(std::string message);
 
 template<>
-unsigned int Query<unsigned int>(std::string message)
+inline unsigned int Query<unsigned int>(std::string message)
 {
 	std::string temp;
 	std::cout << message << '\n';
@@ -35,7 +36,7 @@ unsigned int Query<unsigned int>(std::string message)
 }
 
 template<>
-unsigned short Query<unsigned short>(std::string message)
+inline unsigned short Query<unsigned short>(std::string message)
 {
 	std::string temp;
 	std::cout << message << '\n';
@@ -49,7 +50,7 @@ unsigned short Query<unsigned short>(std::string message)
 }
 
 template<>
-double Query<double>(std::string message)
+inline double Query<double>(std::string message)
 {
 	std::string temp;
 	std::cout << message << '\n';
@@ -63,7 +64,7 @@ double Query<double>(std::string message)
 }
 
 template<>
-std::string Query<std::string>(std::string message)
+inline std::string Query<std::string>(std::string message)
 {
 	std::string temp;
 	std::cout << message << '\n';
@@ -71,7 +72,7 @@ std::string Query<std::string>(std::string message)
 	return temp;
 }
 
-std::string QueryFileName(std::string message, std::string postfix)
+inline std::string QueryFileName(std::string message, std::string postfix)
 {
 	std::string temp;
 	std::cout << message << '\n';

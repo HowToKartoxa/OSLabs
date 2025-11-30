@@ -12,7 +12,7 @@ EmployeeDB::EmployeeDB(std::string _name, std::vector<EmployeeDB::Employee>& dat
 	{
 
 	}
-	file.write(reinterpret_cast<char*>(size), sizeof(unsigned int));
+	file.write(reinterpret_cast<char*>(&size), sizeof(unsigned int));
 	for (unsigned int i = 0u; i < size; i++)
 	{
 		file.write(reinterpret_cast<char*>(&data[i]), sizeof(Employee));

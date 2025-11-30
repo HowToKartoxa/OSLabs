@@ -1,7 +1,6 @@
 #include <utils/input_parsing.h>
 
 #include <iostream>
-#include <stdexcept>
 #include <cctype>
 
 bool CheckFileName(std::string file_name, std::string required_postfix = "", bool verbose)
@@ -237,7 +236,7 @@ bool CheckIfInt(std::string str, bool verbose)
 	}
 }
 
-bool CheckIfUnsignedInt(std::string str, bool verbose = true)
+bool CheckIfUnsignedInt(std::string str, bool verbose)
 {
 	std::string int_max_str = std::to_string(UINT_MAX);
 	bool is_negative = false;

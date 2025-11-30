@@ -7,6 +7,17 @@
 
 #include <windows.h>
 
+struct connection_data
+{
+	unsigned short connection_number;
+	EmployeeDB& database;
+
+	connection_data(unsigned int _connection_number, EmployeeDB& _database) :
+		connection_number(_connection_number),
+		database(_database)
+	{}
+};
+
 class Server
 {
 	HANDLE* active_connections;
@@ -26,16 +37,5 @@ public:
 };
 
 DWORD WINAPI client_connection(LPVOID params);
-
-struct connection_data
-{
-	unsigned short connection_number;
-	EmployeeDB& database;
-
-	connection_data(unsigned int _connection_number, EmployeeDB& _database) : 
-		connection_number(_connection_number), 
-		database(_database) 
-	{}
-};
 
 #endif

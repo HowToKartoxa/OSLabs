@@ -126,4 +126,5 @@ DWORD Client::Operate()
 			}
 		}
 	}
+	return 0ul;
 }
