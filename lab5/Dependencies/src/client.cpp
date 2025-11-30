@@ -61,7 +61,7 @@ DWORD Client::Operate()
 					//
 				}
 
-				std::cout << buffer.data.id << '\n' << buffer.data.name << '\n' << buffer.data.hours << '\n';
+				std::cout << "ID: " << buffer.data.id << '\n' << "Name: " << buffer.data.name << '\n' << "Hours: " << buffer.data.hours << '\n';
 				buffer.type = message_types::UNLOCK_SHARED;
 				std::cout << "Press any key to stop access to the table entry:\n";
 				std::cin.get();
@@ -77,7 +77,7 @@ DWORD Client::Operate()
 			}
 			else if (temp_string[0] == 's')
 			{
-				buffer.data.id = Query<unsigned int>("Enter id of the employee:");
+				buffer.data.id = Query<unsigned int>("Enter ID of the employee:");
 				buffer.type = message_types::GET_EXCLUSIVE;
 
 				if (!WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))

@@ -26,7 +26,7 @@ DWORD Server::Operate()
 {
 	std::string file_name = QueryFileName("Enter binary file name:", "");
 
-	unsigned int number_of_employees = Query<unsigned int>("Enter the number of employees in the file");
+	unsigned int number_of_employees = Query<unsigned int>("Enter the number of employees in the file:");
 
 	std::vector<EmployeeDB::Employee> data(number_of_employees);
 	std::vector<SRWLOCK> locks(number_of_employees);
@@ -173,7 +173,7 @@ DWORD WINAPI client_connection(LPVOID params)
 				{
 					//
 				}
-				std::cout << "{GET} " << buffer.data.id << " FROM [" << info.connection_number << "]\n";
+				std::cout << "{GET SHARED} " << buffer.data.id << " FROM [" << info.connection_number << "]\n";
 				ReleaseMutex(output_log_mutex);
 
 				if (info.database.WGetShared(buffer.data.id, buffer.data, locked_at))
@@ -195,7 +195,7 @@ DWORD WINAPI client_connection(LPVOID params)
 				{
 					//
 				}
-				std::cout << "{GET} " << buffer.data.id << " FROM [" << info.connection_number << "]\n";
+				std::cout << "{GET EXCLUSIVE} " << buffer.data.id << " FROM [" << info.connection_number << "]\n";
 				ReleaseMutex(output_log_mutex);
 
 				if (info.database.WGetExclusive(buffer.data.id, buffer.data, locked_at))
@@ -261,7 +261,7 @@ DWORD WINAPI client_connection(LPVOID params)
 				{
 					//
 				}
-				std::cout << "{UNLOCK SHARED} " << buffer.data.id << " FROM [" << info.connection_number << "]\n";
+				std::cout << "{UNLOCK EXCLUSIVE} " << buffer.data.id << " FROM [" << info.connection_number << "]\n";
 				ReleaseMutex(output_log_mutex);
 
 				if (info.database.UnlockExclusive(locked_at))
