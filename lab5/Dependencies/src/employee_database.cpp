@@ -7,7 +7,7 @@ EmployeeDB::EmployeeDB(std::string _name, std::vector<EmployeeDB::Employee>& dat
 {
 	unsigned int size = data.size();
 
-	std::fstream file(name, std::ios::out);
+	std::fstream file(name, std::ios::out | std::ios::binary);
 	if (!file.is_open())
 	{
 
@@ -27,20 +27,21 @@ EmployeeDB::~EmployeeDB()
 
 DWORD EmployeeDB::WGetShared(unsigned int id, Employee& destination, size_t& index)
 {
-	std::fstream file(name, std::ios::in);
+	std::fstream file(name, std::ios::in | std::ios::binary);
 	unsigned int size;
 	file.read(reinterpret_cast<char*>(&size), sizeof(unsigned int));
 	for (unsigned int i = 0u; i < size; i++)
 	{
 		AcquireSRWLockShared(&locks[i]);
 		file.read(reinterpret_cast<char*>(&destination), sizeof(Employee));
+		ReleaseSRWLockShared(&locks[i]);
 		if (destination.id == id)
 		{
+			AcquireSRWLockShared(&locks[i]);
 			index = i;
 			file.close();
 			return 0ul;
 		}
-		ReleaseSRWLockShared(&locks[i]);
 	}
 	file.close();
 	return 1ul;
@@ -48,7 +49,7 @@ DWORD EmployeeDB::WGetShared(unsigned int id, Employee& destination, size_t& ind
 
 DWORD EmployeeDB::WGetExclusive(unsigned int id, Employee& destination, size_t& index)
 {
-	std::fstream file(name, std::ios::in);
+	std::fstream file(name, std::ios::in | std::ios::binary);
 	unsigned int size;
 	file.read(reinterpret_cast<char*>(&size), sizeof(unsigned int));
 	for (unsigned int i = 0u; i < size; i++)
@@ -68,9 +69,9 @@ DWORD EmployeeDB::WGetExclusive(unsigned int id, Employee& destination, size_t& 
 	return 1ul;
 }
 
-DWORD EmployeeDB::Set(unsigned int id, Employee& source, const size_t& index)
+DWORD EmployeeDB::Set(Employee& source, const size_t& index)
 {
-	std::fstream file(name, std::ios::in);
+	std::fstream file(name, std::ios::out | std::ios::in | std::ios::binary);
 	file.seekp(sizeof(unsigned int) + index * sizeof(Employee));
 	file.write(reinterpret_cast<char*>(&source), sizeof(Employee));
 	return 0ul;

@@ -33,7 +33,7 @@ public:
 
 	DWORD WGetShared(unsigned int id, Employee& destination, size_t& index);
 	DWORD WGetExclusive(unsigned int id, Employee& destination, size_t& index);
-	DWORD Set(unsigned int id, Employee& source, const size_t& index);
+	DWORD Set(Employee& source, const size_t& index);
 	DWORD UnlockShared(const size_t& index);
 	DWORD UnlockExclusive(const size_t& index);
 };

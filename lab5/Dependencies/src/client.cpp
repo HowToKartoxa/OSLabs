@@ -32,7 +32,7 @@ DWORD Client::Operate()
 {
 	std::cout << "Client [" << client_number << "]\n";
 	std::string temp_string = "";
-	message buffer(message_types::RESP, EmployeeDB::Employee(0, "", 0));
+	message buffer(message_types::FOUND, EmployeeDB::Employee(0, "", 0));
 	DWORD bytes_read;
 	DWORD bytes_written;
 
@@ -61,18 +61,25 @@ DWORD Client::Operate()
 					//
 				}
 
-				std::cout << "ID: " << buffer.data.id << '\n' << "Name: " << buffer.data.name << '\n' << "Hours: " << buffer.data.hours << '\n';
-				buffer.type = message_types::UNLOCK_SHARED;
-				std::cout << "Press any key to stop access to the table entry:\n";
-				std::cin.get();
-
-				if (!WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
+				if (buffer.type == NOT_FOUND)
 				{
-					//
+					std::cout << "Employee with specified ID does not exist\n";
 				}
-				if (!ReadFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_read, NULL))
+				else
 				{
-					//
+					std::cout << "ID: " << buffer.data.id << '\n' << "Name: " << buffer.data.name << '\n' << "Hours: " << buffer.data.hours << '\n';
+
+					buffer.type = message_types::UNLOCK_SHARED;
+					temp_string = Query<std::string>("Press any key to stop access to the table entry:");
+
+					if (!WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
+					{
+						//
+					}
+					if (!ReadFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_read, NULL))
+					{
+						//
+					}
 				}
 			}
 			else if (temp_string[0] == 's')
@@ -88,36 +95,42 @@ DWORD Client::Operate()
 				{
 					//
 				}
-				std::cout << buffer.data.id << '\n' << buffer.data.name << '\n' << buffer.data.hours << '\n';
 
-				buffer.data.id = Query<unsigned int>("Enter new id:");
-				temp_string = Query<std::string>("Enter new name:");
-				strcpy_s(buffer.data.name, temp_string.c_str());
-				buffer.data.hours = Query<double>("Enter new hours:");
-				buffer.type = message_types::SET;
-				std::cout << "Press any key to send new data:\n";
-				std::cin.get();
-
-				if (!WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
+				if (buffer.type == NOT_FOUND)
 				{
-					//
+					std::cout << "Employee with specified ID does not exist\n";
 				}
-				if (!ReadFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_read, NULL))
+				else
 				{
-					//
-				}
+					std::cout << buffer.data.id << '\n' << buffer.data.name << '\n' << buffer.data.hours << '\n';
 
-				buffer.type = message_types::UNLOCK_EXCLUSIVE;
-				std::cout << "Press any key to stop access to the table entry:\n";
-				std::cin.get();
+					buffer.data.id = Query<unsigned int>("Enter new id:");
+					temp_string = Query<std::string>("Enter new name:");
+					strcpy_s(buffer.data.name, temp_string.c_str());
+					buffer.data.hours = Query<double>("Enter new hours:");
+					buffer.type = message_types::SET;
+					temp_string = Query<std::string>("Press any key to send new data to the server:");
 
-				if (!WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
-				{
-					//
-				}
-				if (!ReadFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_read, NULL))
-				{
-					//
+					if (!WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
+					{
+						//
+					}
+					if (!ReadFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_read, NULL))
+					{
+						//
+					}
+
+					buffer.type = message_types::UNLOCK_EXCLUSIVE;
+					temp_string = Query<std::string>("Press any key to stop access to the table entry:");
+
+					if (!WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
+					{
+						//
+					}
+					if (!ReadFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_read, NULL))
+					{
+						//
+					}
 				}
 			}
 			else 

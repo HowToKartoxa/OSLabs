@@ -44,7 +44,7 @@ DWORD Server::Operate()
 	database = new EmployeeDB(file_name, data, locks);
 
 	output_log_mutex = CreateMutexA(NULL, FALSE, "SERVER_OUTPUT_LOG_MUTEX");
-	if (output_log_mutex == INVALID_HANDLE_VALUE)
+	if (output_log_mutex == NULL)
 	{
 		//
 	}
@@ -153,7 +153,7 @@ DWORD WINAPI client_connection(LPVOID params)
 	std::cout << "CONNECTED TO CLIENT [" << info.connection_number << "]!\n";
 	ReleaseMutex(output_log_mutex);
 
-	message buffer(message_types::RESP, EmployeeDB::Employee(0, "", 0));
+	message buffer(message_types::FOUND, EmployeeDB::Employee(0, "", 0));
 	DWORD bytes_read;
 	DWORD bytes_written;
 	size_t locked_at;
@@ -178,10 +178,13 @@ DWORD WINAPI client_connection(LPVOID params)
 
 				if (info.database.WGetShared(buffer.data.id, buffer.data, locked_at))
 				{
-					//
+					buffer.type = message_types::NOT_FOUND;
 				}
-
-				buffer.type = message_types::RESP;
+				else
+				{
+					buffer.type = message_types::FOUND;
+				}
+				
 				if (WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
 				{
 					//
@@ -200,10 +203,13 @@ DWORD WINAPI client_connection(LPVOID params)
 
 				if (info.database.WGetExclusive(buffer.data.id, buffer.data, locked_at))
 				{
-					//
+					buffer.type = message_types::NOT_FOUND;
+				}
+				else
+				{
+					buffer.type = message_types::FOUND;
 				}
 
-				buffer.type = message_types::RESP;
 				if (WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
 				{
 					//
@@ -217,15 +223,12 @@ DWORD WINAPI client_connection(LPVOID params)
 				{
 					//
 				}
-				std::cout << "{SET} " << buffer.data.id << " FROM [" << info.connection_number << "]\n";
+				std::cout << "{SET} " << locked_at << " FROM [" << info.connection_number << "]\n";
 				ReleaseMutex(output_log_mutex);
 
-				if (info.database.Set(buffer.data.id, buffer.data, locked_at))
-				{
-					//
-				}
+				info.database.Set(buffer.data, locked_at);
 
-				buffer.type = message_types::RESP;
+				buffer.type = message_types::FOUND;
 				if (WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
 				{
 					//
@@ -242,12 +245,9 @@ DWORD WINAPI client_connection(LPVOID params)
 				std::cout << "{UNLOCK SHARED} " << buffer.data.id << " FROM [" << info.connection_number << "]\n";
 				ReleaseMutex(output_log_mutex);
 
-				if (info.database.UnlockShared(locked_at))
-				{
-					//
-				}
+				info.database.UnlockShared(locked_at);
 
-				buffer.type = message_types::RESP;
+				buffer.type = message_types::FOUND;
 				if (WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
 				{
 					//
@@ -264,12 +264,9 @@ DWORD WINAPI client_connection(LPVOID params)
 				std::cout << "{UNLOCK EXCLUSIVE} " << buffer.data.id << " FROM [" << info.connection_number << "]\n";
 				ReleaseMutex(output_log_mutex);
 
-				if (info.database.UnlockExclusive(locked_at))
-				{
-					//
-				}
+				info.database.UnlockExclusive(locked_at);
 
-				buffer.type = message_types::RESP;
+				buffer.type = message_types::FOUND;
 				if (WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
 				{
 					//
