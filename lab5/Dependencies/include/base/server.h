@@ -34,6 +34,11 @@ public:
 	Server();
 	~Server();
 	DWORD Operate();
+
+private:
+	unsigned short new_client_connection();
+	unsigned short new_client_process();
+	void log(std::string message);
 };
 
 DWORD WINAPI client_connection(LPVOID params);

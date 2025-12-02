@@ -15,11 +15,81 @@ Server::Server() :
 	clients_startup_info(),
 	clients_process_info(),
 	output_log_mutex(nullptr),
-	database(nullptr) {}
+	database(nullptr) 
+{
+	output_log_mutex = CreateMutexA(NULL, FALSE, "SERVER_OUTPUT_LOG_MUTEX");
+	if (output_log_mutex == NULL)
+	{
+		//
+	}
+}
 
 Server::~Server()
 {
 	delete database;
+}
+
+unsigned short Server::new_client_connection()
+{
+	unsigned short index = active_connections_data.size();
+
+	active_connections_data.emplace_back(index, *database);
+	HANDLE temp_thread_handle = CreateThread(NULL, NULL, client_connection, &active_connections_data[index], NULL, NULL);
+	if (temp_thread_handle == INVALID_HANDLE_VALUE)
+	{
+		//
+	}
+	active_connections[index] = temp_thread_handle;
+
+	return index;
+}
+
+unsigned short Server::new_client_process()
+{
+	unsigned short index = clients_startup_info.size();
+
+	clients_startup_info.emplace_back();
+	clients_process_info.emplace_back();
+	ZeroMemory(&clients_startup_info[index], sizeof(STARTUPINFOA));
+	clients_startup_info[index].cb = sizeof(STARTUPINFOA);
+
+	if (!CreateProcessA
+	(
+		NULL,
+		const_cast<char*>
+		(
+			(
+				std::string("Client.exe ")
+				+ std::to_string(index)
+				+ std::string(" \\\\.\\pipe\\client_pipe_")
+				+ std::to_string(index)
+			).c_str()
+		),
+		NULL,
+		NULL,
+		FALSE,
+		CREATE_NEW_CONSOLE,
+		NULL,
+		NULL,
+		&clients_startup_info[index],
+		&clients_process_info[index]
+	))
+	{
+		//
+	}
+
+	return index;
+}
+
+void Server::log(std::string message)
+{
+	DWORD wait_result = WaitForSingleObject(output_log_mutex, INFINITE);
+	if (wait_result != WAIT_OBJECT_0)
+	{
+		//
+	}
+	std::cout << message << '\n';
+	ReleaseMutex(output_log_mutex);
 }
 
 DWORD Server::Operate()
@@ -43,67 +113,26 @@ DWORD Server::Operate()
 
 	database = new EmployeeDB(file_name, data, locks);
 
-	output_log_mutex = CreateMutexA(NULL, FALSE, "SERVER_OUTPUT_LOG_MUTEX");
-	if (output_log_mutex == NULL)
-	{
-		//
-	}
-
 	std::cout << "Initializing clients ...\n";
 
 	unsigned short number_of_clients = Query<unsigned short>("Enter number of client processes:");
 
-	HANDLE temp_thread_handle;
 	std::string temp_command_line;
 	active_connections = new HANDLE[number_of_clients];
-	DWORD wait_result;
+	unsigned short index;
 
 	for (unsigned short i = 0; i < number_of_clients; i++)
 	{
-		active_connections_data.emplace_back(i, *database);
-		temp_thread_handle = CreateThread(NULL, NULL, client_connection, &active_connections_data[i], NULL, NULL);
-		if (temp_thread_handle == INVALID_HANDLE_VALUE)
-		{
-			//
-		}
-		active_connections[i] = temp_thread_handle;
+		new_client_connection();
+		index = new_client_process();
 
-		clients_startup_info.emplace_back();
-		clients_process_info.emplace_back();
-		ZeroMemory(&clients_startup_info[i], sizeof(STARTUPINFOA));
-		clients_startup_info[i].cb = sizeof(STARTUPINFOA);
-
-		temp_command_line = "Client.exe ";
-		temp_command_line += std::to_string(i);
-		temp_command_line += " \\\\.\\pipe\\client_pipe_";
-		temp_command_line += std::to_string(i);
-
-		if (!CreateProcessA
-		(
-			NULL,
-			const_cast<char*>(temp_command_line.c_str()),
-			NULL,
-			NULL,
-			FALSE,
-			CREATE_NEW_CONSOLE,
-			NULL,
-			NULL,
-			&clients_startup_info[i],
-			&clients_process_info[i]
-		))
-		{
-			//
-		}
-
-		wait_result = WaitForSingleObject(output_log_mutex, INFINITE);
-		if (wait_result != WAIT_OBJECT_0)
-		{
-			//
-		}
-		std::cout << "CLIENT PROCESS [" << i << "] initialized!\n";
-		ReleaseMutex(output_log_mutex);
+		log(std::string("CLIENT PROCESS [" + std::to_string(index) + "] created!"));
 	}
-	Sleep(INFINITE);
+	DWORD wait_result = WaitForMultipleObjects(number_of_clients, active_connections, TRUE, INFINITE);
+	if (wait_result < WAIT_OBJECT_0 || wait_result > WAIT_OBJECT_0 + number_of_clients)
+	{
+		//
+	}
 	return 0ul;
 }
 
@@ -117,8 +146,7 @@ DWORD WINAPI client_connection(LPVOID params)
 
 	connection_data info = *reinterpret_cast<connection_data*>(params);
 
-	DWORD wait_result = WaitForSingleObject(output_log_mutex, INFINITE);
-	if (wait_result != WAIT_OBJECT_0)
+	if (WaitForSingleObject(output_log_mutex, INFINITE) != WAIT_OBJECT_0)
 	{
 		//
 	}
@@ -145,8 +173,7 @@ DWORD WINAPI client_connection(LPVOID params)
 		//
 	}
 
-	wait_result = WaitForSingleObject(output_log_mutex, INFINITE);
-	if (wait_result != WAIT_OBJECT_0)
+	if (WaitForSingleObject(output_log_mutex, INFINITE) != WAIT_OBJECT_0)
 	{
 		//
 	}
@@ -158,7 +185,9 @@ DWORD WINAPI client_connection(LPVOID params)
 	DWORD bytes_written;
 	size_t locked_at;
 
-	while (true)
+	bool operational = true;
+
+	while (operational)
 	{
 		if (!ReadFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_read, NULL))
 		{
@@ -168,8 +197,7 @@ DWORD WINAPI client_connection(LPVOID params)
 		{
 			case message_types::GET_SHARED: 
 			{
-				wait_result = WaitForSingleObject(output_log_mutex, INFINITE);
-				if (wait_result != WAIT_OBJECT_0)
+				if (WaitForSingleObject(output_log_mutex, INFINITE) != WAIT_OBJECT_0)
 				{
 					//
 				}
@@ -193,8 +221,7 @@ DWORD WINAPI client_connection(LPVOID params)
 			}
 			case message_types::GET_EXCLUSIVE:
 			{
-				wait_result = WaitForSingleObject(output_log_mutex, INFINITE);
-				if (wait_result != WAIT_OBJECT_0)
+				if (WaitForSingleObject(output_log_mutex, INFINITE) != WAIT_OBJECT_0)
 				{
 					//
 				}
@@ -218,8 +245,7 @@ DWORD WINAPI client_connection(LPVOID params)
 			}
 			case message_types::SET: 
 			{
-				wait_result = WaitForSingleObject(output_log_mutex, INFINITE);
-				if (wait_result != WAIT_OBJECT_0)
+				if (WaitForSingleObject(output_log_mutex, INFINITE) != WAIT_OBJECT_0)
 				{
 					//
 				}
@@ -237,8 +263,7 @@ DWORD WINAPI client_connection(LPVOID params)
 			}
 			case message_types::UNLOCK_SHARED: 
 			{
-				wait_result = WaitForSingleObject(output_log_mutex, INFINITE);
-				if (wait_result != WAIT_OBJECT_0)
+				if (WaitForSingleObject(output_log_mutex, INFINITE) != WAIT_OBJECT_0)
 				{
 					//
 				}
@@ -256,8 +281,7 @@ DWORD WINAPI client_connection(LPVOID params)
 			}
 			case message_types::UNLOCK_EXCLUSIVE: 
 			{
-				wait_result = WaitForSingleObject(output_log_mutex, INFINITE);
-				if (wait_result != WAIT_OBJECT_0)
+				if (WaitForSingleObject(output_log_mutex, INFINITE) != WAIT_OBJECT_0)
 				{
 					//
 				}
@@ -273,6 +297,27 @@ DWORD WINAPI client_connection(LPVOID params)
 				}
 				break;
 			}
+			case message_types::SHUTDOWN: 
+			{
+				if (WaitForSingleObject(output_log_mutex, INFINITE) != WAIT_OBJECT_0)
+				{
+					//
+				}
+
+				buffer.type = message_types::FOUND;
+				if (WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
+				{
+					//
+				}
+
+				std::cout << "CONNECTION[" << info.connection_number << "] terminated!\n";
+				ReleaseMutex(output_log_mutex);
+
+				operational = false;
+				break;
+			}
 		}
 	}
+
+	return 0ul;
 }

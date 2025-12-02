@@ -43,6 +43,15 @@ DWORD Client::Operate()
 		std::getline(std::cin, temp_string);
 		if (temp_string.empty())
 		{
+			buffer.type = message_types::SHUTDOWN;
+			if (!WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
+			{
+				//
+			}
+			if (!ReadFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_read, NULL))
+			{
+				//
+			}
 			break;
 		}
 		else
@@ -135,7 +144,16 @@ DWORD Client::Operate()
 			}
 			else 
 			{
-				break; 
+				buffer.type = message_types::SHUTDOWN;
+				if (!WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
+				{
+					//
+				}
+				if (!ReadFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_read, NULL))
+				{
+					//
+				}
+				break;
 			}
 		}
 	}

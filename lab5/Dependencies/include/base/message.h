@@ -18,6 +18,7 @@ enum message_types
 	SET,
 	UNLOCK_SHARED,
 	UNLOCK_EXCLUSIVE,
+	SHUTDOWN,
 	NOT_FOUND,
 	FOUND
 };
