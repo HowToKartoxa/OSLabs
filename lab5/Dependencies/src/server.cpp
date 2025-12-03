@@ -259,7 +259,7 @@ DWORD WINAPI client_connection(LPVOID params)
 					buffer.type = message_types::FOUND;
 				}
 				
-				if (WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
+				if (!WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
 				{
 					return GetLastError();
 				}
@@ -284,7 +284,7 @@ DWORD WINAPI client_connection(LPVOID params)
 					buffer.type = message_types::FOUND;
 				}
 
-				if (WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
+				if (!WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
 				{
 					return GetLastError();
 				}
@@ -303,7 +303,7 @@ DWORD WINAPI client_connection(LPVOID params)
 				info.database.Set(buffer.data, locked_at);
 
 				buffer.type = message_types::FOUND;
-				if (WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
+				if (!WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
 				{
 					return GetLastError();
 				}
@@ -322,7 +322,7 @@ DWORD WINAPI client_connection(LPVOID params)
 				info.database.UnlockShared(locked_at);
 
 				buffer.type = message_types::FOUND;
-				if (WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
+				if (!WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
 				{
 					return GetLastError();
 				}
@@ -341,7 +341,7 @@ DWORD WINAPI client_connection(LPVOID params)
 				info.database.UnlockExclusive(locked_at);
 
 				buffer.type = message_types::FOUND;
-				if (WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
+				if (!WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
 				{
 					return GetLastError();
 				}
@@ -349,22 +349,22 @@ DWORD WINAPI client_connection(LPVOID params)
 			}
 			case message_types::SHUTDOWN: 
 			{
+				buffer.type = message_types::FOUND;
+				if (!WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
+				{
+					return GetLastError();
+				}
+
+				operational = false;
+
 				wait_result = WaitForSingleObject(output_log_mutex, INFINITE);
 				if (wait_result != WAIT_OBJECT_0)
 				{
 					return wait_result;
 				}
-
-				buffer.type = message_types::FOUND;
-				if (WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
-				{
-					return GetLastError();
-				}
-
 				std::cout << "CONNECTION[" << info.connection_number << "] terminated!\n";
 				ReleaseMutex(output_log_mutex);
 
-				operational = false;
 				break;
 			}
 		}

@@ -21,7 +21,7 @@ DWORD main(int argc, char** argv)
 	}
 	else
 	{
-		std::cout << client.GetErrorMessage();
+		std::cout << client.GetErrorMessage() << '\n';
 		std::system("pause");
 		return client.GetErrorCode();
 	}

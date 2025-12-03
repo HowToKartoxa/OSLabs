@@ -12,13 +12,12 @@ DWORD main(int argc, char** argv)
 
 	if (server.Ok())
 	{
-		std::cout << "hui";
 		std::system("pause");
-		return 0;
+		return 0ul;
 	}
 	else
 	{
-		std::cout << server.GetErrorMessage();
+		std::cout << server.GetErrorMessage() << '\n';
 		std::system("pause");
 		return server.GetErrorCode();
 	}
