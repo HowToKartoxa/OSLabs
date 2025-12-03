@@ -30,15 +30,24 @@ class Server
 
 	EmployeeDB* database;
 
+	DWORD error_code;
+	std::string error_message;
+
 public:
 	Server();
 	~Server();
 	DWORD Operate();
 
+	bool Ok();
+	DWORD GetErrorCode();
+	std::string GetErrorMessage();
+
+
 private:
 	unsigned short new_client_connection();
 	unsigned short new_client_process();
 	void log(std::string message);
+	void raise(DWORD code, std::string message);
 };
 
 DWORD WINAPI client_connection(LPVOID params);
