@@ -89,13 +89,14 @@ size_t EmployeeDBInternal::serialize_recursive(BTreeNode* curr, std::fstream& fi
 		for (size_t i = 0; i < curr->data.size(); i++)
 		{
 			file.write(reinterpret_cast<char*>(curr->data[i]), sizeof(Employee));
+			data_offset += sizeof(Employee);
 		}
 
 		return temp_p;
 	}
 	else
 	{
-		NodeInfo info('\1', curr->keys.size());
+		NodeInfo info('\0', curr->keys.size());
 		file.write(reinterpret_cast<char*>(&info), sizeof(NodeInfo));
 
 		for (size_t i = 0; i < curr->keys.size(); i++)
@@ -133,16 +134,45 @@ size_t EmployeeDBInternal::GetPageSize()
 #endif
 }
 
-bool EmployeeDBInternal::Find(std::fstream file, size_t& table_index, size_t& file_pos)
+bool EmployeeDBInternal::Find(const size_t& id, std::fstream file, size_t& file_pos)
 {
+	file_pos = 0;
 	size_t node_size = GetPageSize();
 	char* buffer = new char[node_size];
-	file.read(buffer, node_size);
-	
 	NodeInfo info('\1', 0);
-	memcpy_s(&info, sizeof(NodeInfo), &buffer, sizeof(NodeInfo));
+	size_t* temp_arr;
 
-	size_t* keys = reinterpret_cast<size_t*>(buffer + sizeof(NodeInfo));
-	size_t index = 
-	
+	while (true)
+	{
+		file.seekg(file_pos);
+		file.read(buffer, node_size);
+		memcpy_s(&info, sizeof(NodeInfo), &buffer, sizeof(NodeInfo));
+		temp_arr = reinterpret_cast<size_t*>(buffer + sizeof(NodeInfo));
+		if (info.type == '\1')
+		{
+			if (BinarySearch(id, info.size, temp_arr, file_pos))
+			{
+				file_pos = (temp_arr + info.size)[file_pos];
+				return true;
+			}
+			else return false;
+		}
+		else
+		{
+			file_pos = UpperBound(id, info.size, temp_arr);
+			file_pos = (temp_arr + info.size)[file_pos];
+		}
+	}
+}
+
+void EmployeeDBInternal::Get(std::fstream file, size_t file_pos, Employee& destination)
+{
+	file.seekg(file_pos);
+	file.read(reinterpret_cast<char*>(&destination), sizeof(Employee));
+}
+
+void EmployeeDBInternal::Set(std::fstream file, size_t file_pos, Employee& source)
+{
+	file.seekp(file_pos);
+	file.write(reinterpret_cast<char*>(&source), sizeof(Employee));
 }

@@ -142,6 +142,39 @@ class EmployeeDBInternal
 
 	size_t serialize_recursive(BTreeNode* curr, std::fstream& file, size_t& node_offset, size_t& data_offset);
 
+	static size_t UpperBound(size_t target, size_t count, size_t* data)
+	{
+		size_t left = 0;
+		size_t right = count;
+		size_t middle;
+		while (left < right)
+		{
+			middle = (right - left) / 2ull + left;
+			if (target >= data[middle]) left = middle + 1ull;
+			else right = middle;
+		}
+		return left;
+	}
+
+	static bool BinarySearch(size_t target, size_t count, size_t* data, size_t& pos)
+	{
+		size_t left = 0;
+		size_t right = count;
+		size_t middle;
+		while (left < right)
+		{
+			middle = (right - left) / 2ull + left;
+			if (target == data[middle]) 
+			{ 
+				pos = middle;
+				return true;
+			}
+			else if (target > data[middle]) left = middle + 1;
+			else right = middle;
+		}
+		return false;
+	}
+
 public:
 	EmployeeDBInternal(const std::vector<Employee>& data);
 	~EmployeeDBInternal();
@@ -149,9 +182,9 @@ public:
 	void Insert(const Employee& source);
 	void Serialize(std::fstream& file);
 
-	static bool Find(std::fstream file, size_t& table_index, size_t& file_pos);
+	static bool Find(const size_t& id, std::fstream file, size_t& file_pos);
 	static void Get(std::fstream file, size_t file_pos, Employee& destination);
-	static bool Set(std::fstream file, size_t file_pos, Employee& source);
+	static void Set(std::fstream file, size_t file_pos, Employee& source);
 
 	static size_t GetPageSize();
 };
