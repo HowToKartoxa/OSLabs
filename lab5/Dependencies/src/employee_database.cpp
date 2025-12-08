@@ -10,7 +10,7 @@ EmployeeDB::EmployeeDB(std::string _name, std::vector<EmployeeDB::Employee>& dat
 	std::fstream file(name, std::ios::out | std::ios::binary);
 	if (!file.is_open())
 	{
-
+		throw "Failed to open file";
 	}
 	file.write(reinterpret_cast<char*>(&size), sizeof(unsigned int));
 	for (unsigned int i = 0u; i < size; i++)
