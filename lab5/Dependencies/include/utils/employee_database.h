@@ -11,15 +11,15 @@
 class EmployeeDB
 {
 	std::string name;
-	std::vector<SRWLOCK>& locks;
+	std::vector<SRWLOCK> locks;
 
 public:
 
-	EmployeeDB(std::string name, std::vector<Employee>& data, std::vector<SRWLOCK>& locks);
+	EmployeeDB(std::string name, std::vector<Employee>& data);
 	~EmployeeDB();
 
-	DWORD WGetShared(unsigned int id, Employee& destination, size_t& index);
-	DWORD WGetExclusive(unsigned int id, Employee& destination, size_t& index);
+	DWORD WGetShared(size_t id, Employee& destination, size_t& index);
+	DWORD WGetExclusive(size_t id, Employee& destination, size_t& index);
 	DWORD Set(Employee& source, const size_t& index);
 	DWORD UnlockShared(const size_t& index);
 	DWORD UnlockExclusive(const size_t& index);

@@ -1,6 +1,7 @@
 #include <base/client.h>
 #include <base/message.h>
 #include <utils/input_parsing.h>
+#include <utils/employee.h>
 
 #include <iostream>
 #include <string>
@@ -58,7 +59,7 @@ DWORD Client::Operate()
 
 	std::cout << "Client [" << client_number << "]\n";
 	std::string temp_string = "";
-	message buffer(message_types::FOUND, EmployeeDB::Employee(0, "", 0));
+	message buffer(message_types::FOUND, Employee(0, "", 0));
 	DWORD bytes_read;
 	DWORD bytes_written;
 
@@ -149,7 +150,7 @@ DWORD Client::Operate()
 
 			buffer.data.id = Query<unsigned int>("Enter new id:");
 			temp_string = Query<std::string>("Enter new name:");
-			strcpy_s(buffer.data.name, temp_string.c_str());
+			strcpy_s(buffer.data.name, 20, temp_string.c_str());
 			buffer.data.hours = Query<double>("Enter new hours:");
 			buffer.type = message_types::SET;
 			temp_string = Query<std::string>("Press any key to send new data to the server:");

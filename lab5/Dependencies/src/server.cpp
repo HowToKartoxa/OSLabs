@@ -1,6 +1,7 @@
 #include <base/server.h>
 #include <utils/input_parsing.h>
 #include <base/message.h>
+#include <utils/employee.h>
 
 #include <iostream>
 #include <string>
@@ -128,20 +129,21 @@ DWORD Server::Operate()
 
 	unsigned int number_of_employees = Query<unsigned int>("Enter the number of employees in the file:");
 
-	std::vector<EmployeeDB::Employee> data(number_of_employees);
-	std::vector<SRWLOCK> locks(number_of_employees);
+	std::vector<Employee> data;
 
 	std::string temp_string;
-	for (unsigned int i = 0; i < number_of_employees; i++)
+	size_t temp_id;
+
+	for (size_t i = 0; i < number_of_employees; i++)
 	{
-		data[i].id = Query<unsigned int>("Enter employee ID:");
+		temp_id = Query<size_t>("Enter employee ID:");
+		data.push_back(Employee(temp_id, "", 0));
 		temp_string = Query<std::string>("Enter employee name:");
 		strcpy_s(data[i].name, temp_string.c_str());
 		data[i].hours = Query<double>("Enter employee hours:");
-		InitializeSRWLock(&locks[i]);
 	}
 
-	database = new EmployeeDB(file_name, data, locks);
+	database = new EmployeeDB(file_name, data);
 
 	std::cout << "Initializing clients ...\n";
 
@@ -225,7 +227,7 @@ DWORD WINAPI client_connection(LPVOID params)
 	std::cout << "CONNECTED TO CLIENT [" << info.connection_number << "]!\n";
 	ReleaseMutex(output_log_mutex);
 
-	message buffer(message_types::FOUND, EmployeeDB::Employee(0, "", 0));
+	message buffer(message_types::FOUND, Employee(0, "", 0));
 	DWORD bytes_read;
 	DWORD bytes_written;
 	size_t locked_at;

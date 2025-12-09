@@ -16,6 +16,7 @@ class EmployeeDBInternal
 		size_t max_size;
 
 		size_t& node_count;
+		size_t& entry_count;
 
 		std::vector<BTreeNode*> children;
 		std::vector<size_t> keys;
@@ -23,7 +24,7 @@ class EmployeeDBInternal
 
 		BTreeNode* next;
 
-		BTreeNode(bool _is_leaf, size_t _max_size, size_t& _node_count) :
+		BTreeNode(bool _is_leaf, size_t _max_size, size_t& _node_count, size_t& _entry_count) :
 			is_leaf(_is_leaf),
 			max_size(_max_size),
 			node_count(_node_count),
@@ -68,6 +69,7 @@ class EmployeeDBInternal
 				{
 					return;
 				}
+				entry_count++;
 				children[i]->keys.insert(it, source.id);
 				size_t dist = std::distance(children[i]->keys.begin(), it);
 				children[i]->data.insert(children[i]->data.begin() + dist, new Employee(source));
@@ -91,7 +93,7 @@ class EmployeeDBInternal
 			size_t middle = child->keys.size() / 2;
 			if (child->is_leaf)
 			{
-				BTreeNode* new_leaf = new BTreeNode(true, max_size, node_count);
+				BTreeNode* new_leaf = new BTreeNode(true, max_size, node_count, entry_count);
 				
 				new_leaf->keys.assign(child->keys.begin() + middle, child->keys.end());
 				new_leaf->data.assign(child->data.begin() + middle, child->data.end());
@@ -107,7 +109,7 @@ class EmployeeDBInternal
 			}
 			else
 			{
-				BTreeNode* new_node = new BTreeNode(false, max_size, node_count);
+				BTreeNode* new_node = new BTreeNode(false, max_size, node_count, entry_count);
 
 				size_t key_val = child->keys[middle];
 
@@ -140,7 +142,7 @@ class EmployeeDBInternal
 
 	BTreeNode* root;
 
-	size_t serialize_recursive(BTreeNode* curr, std::fstream& file, size_t& node_offset, size_t& data_offset);
+	size_t serialize_recursive(BTreeNode* curr, std::fstream& file, size_t& node_offset, size_t& data_offset, size_t& curr_entry_index);
 
 	static size_t UpperBound(size_t target, size_t count, size_t* data)
 	{
@@ -176,15 +178,16 @@ class EmployeeDBInternal
 	}
 
 public:
-	EmployeeDBInternal(const std::vector<Employee>& data);
+	EmployeeDBInternal();
 	~EmployeeDBInternal();
 
 	void Insert(const Employee& source);
+	size_t GetEntryCount();
 	void Serialize(std::fstream& file);
 
-	static bool Find(const size_t& id, std::fstream file, size_t& file_pos);
-	static void Get(std::fstream file, size_t file_pos, Employee& destination);
-	static void Set(std::fstream file, size_t file_pos, Employee& source);
+	static bool Find(const size_t& id, std::fstream& file, size_t& table_index, size_t& file_pos);
+	static void Get(std::fstream& file, size_t file_pos, Employee& destination);
+	static void Set(std::fstream& file, size_t file_pos, Employee& source);
 
 	static size_t GetPageSize();
 };
