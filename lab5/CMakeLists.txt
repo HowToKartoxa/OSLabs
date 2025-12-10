@@ -17,7 +17,7 @@ set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_ARCHITECTURE "-x64")
 
-find_package(Boost REQUIRED COMPONENTS thread)
+find_package(Boost REQUIRED COMPONENTS thread unit_test_framework)
 
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
@@ -55,13 +55,14 @@ endif()
 add_executable(Server Server/Server_proc.cpp ${COMMON_SOURCES} ${PLATFORM_SOURCES})
 add_executable(Client Client/Client_proc.cpp ${COMMON_SOURCES} ${PLATFORM_SOURCES} Dependencies/src/client.cpp)
 
-#add_executable(Tests Tests/Tests.cpp ${COMMON_SOURCES} ${PLATFORM_SOURCES})
+add_executable(Tests Tests/Tests.cpp ${COMMON_SOURCES} ${PLATFORM_SOURCES})
 
-#target_link_libraries(Tests PRIVATE Boost::unit_test_framework)
+target_link_libraries(Tests PRIVATE Boost::unit_test_framework)
 target_link_libraries(Server PRIVATE kernel32)
 target_link_libraries(Client PRIVATE kernel32)
-#target_link_libraries(Tests PRIVATE kernel32)
+target_link_libraries(Tests PRIVATE kernel32)
 
 if(USE_BOOST)
 	target_link_libraries(Server PRIVATE Boost::thread)
+	target_link_libraries(Tests PRIVATE Boost::thread)
 endif()
