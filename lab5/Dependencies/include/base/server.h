@@ -33,6 +33,11 @@ class Server
 	DWORD error_code;
 	std::string error_message;
 
+	unsigned short new_client_connection();
+	unsigned short new_client_process();
+	void log(std::string message);
+	void raise(DWORD code, std::string message);
+
 public:
 	Server();
 	~Server();
@@ -41,13 +46,6 @@ public:
 	bool Ok();
 	DWORD GetErrorCode();
 	std::string GetErrorMessage();
-
-
-private:
-	unsigned short new_client_connection();
-	unsigned short new_client_process();
-	void log(std::string message);
-	void raise(DWORD code, std::string message);
 };
 
 DWORD WINAPI client_connection(LPVOID params);

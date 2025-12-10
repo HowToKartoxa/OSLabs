@@ -1,3 +1,5 @@
+#if defined (USE_WINAPI)
+
 #include <base/server.h>
 
 #include <iostream>
@@ -22,3 +24,18 @@ DWORD main(int argc, char** argv)
 		return server.GetErrorCode();
 	}
 }
+
+#elif defined (USE_BOOST)
+
+#include <base/server_boost.h>
+
+int main(int argc, char** argv)
+{
+	Server server;
+	server.Operate();
+	std::system("pause");
+}
+
+#endif
+
+

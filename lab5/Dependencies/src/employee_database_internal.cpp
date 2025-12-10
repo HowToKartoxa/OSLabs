@@ -3,8 +3,6 @@
 #include <fstream>
 #include <string.h>
 
-#define USE_WINAPI
-
 #if defined(USE_WINAPI)
 
 	#include <windows.h>

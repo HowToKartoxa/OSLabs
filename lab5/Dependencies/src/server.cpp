@@ -145,7 +145,7 @@ DWORD Server::Operate()
 
 	database = new EmployeeDB(file_name, data);
 
-	std::cout << "Initializing clients ...\n";
+	log("Initializing clients...");
 
 	unsigned short number_of_clients = Query<unsigned short>("Enter number of client processes:");
 
