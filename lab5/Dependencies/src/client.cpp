@@ -59,7 +59,8 @@ DWORD Client::Operate()
 
 	std::cout << "Client [" << client_number << "]\n";
 	std::string temp_string = "";
-	message buffer(message_types::FOUND, Employee(0, "", 0));
+	size_t temp_id;
+	message buffer(message_types::FOUND, 0, Employee(0, "", 0));
 	DWORD bytes_read;
 	DWORD bytes_written;
 
@@ -85,7 +86,7 @@ DWORD Client::Operate()
 
 		if (temp_string[0] == 'g')
 		{
-			buffer.data.id = Query<unsigned int>("Enter id of the employee:");
+			buffer.id = Query<size_t>("Enter id of the employee:");
 			buffer.type = message_types::GET_SHARED;
 
 			if (!WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
@@ -126,7 +127,7 @@ DWORD Client::Operate()
 
 		if (temp_string[0] == 's')
 		{
-			buffer.data.id = Query<unsigned int>("Enter ID of the employee:");
+			buffer.id = Query<unsigned int>("Enter ID of the employee:");
 			buffer.type = message_types::GET_EXCLUSIVE;
 
 			if (!WriteFile(pipe, reinterpret_cast<void*>(&buffer), sizeof(message), &bytes_written, NULL))
@@ -146,9 +147,8 @@ DWORD Client::Operate()
 				continue;
 			}
 			
-			std::cout << buffer.data.id << '\n' << buffer.data.name << '\n' << buffer.data.hours << '\n';
+			std::cout << "ID: " << buffer.data.id << '\n' << "Name: " << buffer.data.name << '\n' << "Hours: " << buffer.data.hours << '\n';
 
-			buffer.data.id = Query<unsigned int>("Enter new id:");
 			temp_string = Query<std::string>("Enter new name:");
 			strcpy_s(buffer.data.name, 20, temp_string.c_str());
 			buffer.data.hours = Query<double>("Enter new hours:");

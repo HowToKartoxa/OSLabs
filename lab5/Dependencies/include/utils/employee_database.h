@@ -18,9 +18,9 @@ public:
 	EmployeeDB(std::string name, std::vector<Employee>& data);
 	~EmployeeDB();
 
-	DWORD WGetShared(size_t id, Employee& destination, size_t& index);
-	DWORD WGetExclusive(size_t id, Employee& destination, size_t& index);
-	DWORD Set(Employee& source, const size_t& index);
+	DWORD WGetShared(size_t id, Employee& destination, size_t& locked_at);
+	DWORD WGetExclusive(size_t id, Employee& destination, size_t& locked_at, size_t& found_at);
+	DWORD Set(Employee& source, const size_t& found_at);
 	DWORD UnlockShared(const size_t& index);
 	DWORD UnlockExclusive(const size_t& index);
 };

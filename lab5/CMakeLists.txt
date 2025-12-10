@@ -24,6 +24,7 @@ option(USE_BOOST "Use Boost libraries for client-server connection" OFF)
 
 set(COMMON_SOURCES
     Dependencies/src/input_parsing.cpp
+	Dependencies/src/employee_database_internal.cpp
 )
 
 if(USE_BOOST)

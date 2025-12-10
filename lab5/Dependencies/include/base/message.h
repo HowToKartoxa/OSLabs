@@ -2,13 +2,15 @@
 #define _FILE_ACCESS_MESSAGE
 
 #include <utils/employee_database.h>
+#include <utils/employee.h>
 
 struct message
 {
 	char type;
-	EmployeeDB::Employee data;
+	size_t id;
+	Employee data;
 
-	message(char _type, EmployeeDB::Employee _data) : type(_type), data(_data) {}
+	message(char _type, size_t _id, Employee _data) : type(_type), id(_id), data(_data) {}
 };
 
 enum message_types

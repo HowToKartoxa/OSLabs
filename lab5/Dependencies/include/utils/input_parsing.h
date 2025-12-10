@@ -72,6 +72,20 @@ inline std::string Query<std::string>(std::string message)
 	return temp;
 }
 
+template<>
+inline size_t Query<size_t>(std::string message)
+{
+	std::string temp;
+	std::cout << message << '\n';
+	std::getline(std::cin, temp);
+	while (!CheckIfSizeT(temp))
+	{
+		std::cout << message << '\n';
+		std::getline(std::cin, temp);
+	}
+	return StringToSizeT(temp);
+}
+
 inline std::string QueryFileName(std::string message, std::string postfix)
 {
 	std::string temp;

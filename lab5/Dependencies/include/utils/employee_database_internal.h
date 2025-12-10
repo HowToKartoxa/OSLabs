@@ -28,6 +28,7 @@ class EmployeeDBInternal
 			is_leaf(_is_leaf),
 			max_size(_max_size),
 			node_count(_node_count),
+			entry_count(_entry_count),
 			children(),
 			keys(),
 			data(),
@@ -65,7 +66,7 @@ class EmployeeDBInternal
 			if (children[i]->is_leaf)
 			{
 				auto it = std::lower_bound(children[i]->keys.begin(), children[i]->keys.end(), source.id);
-				if (*it == source.id)
+				if (it != children[i]->keys.end() && *it == source.id)
 				{
 					return;
 				}
@@ -125,15 +126,7 @@ class EmployeeDBInternal
 
 			node_count++;
 		}
-	};
-
-	struct NodeInfo
-	{
-		char type;
-		size_t size;
-
-		NodeInfo(char _type, size_t _size) : type(_type), size(_size) {}
-	};
+	}; 
 
 	size_t node_count;
 	size_t entry_count;
@@ -144,38 +137,8 @@ class EmployeeDBInternal
 
 	size_t serialize_recursive(BTreeNode* curr, std::fstream& file, size_t& node_offset, size_t& data_offset, size_t& curr_entry_index);
 
-	static size_t UpperBound(size_t target, size_t count, size_t* data)
-	{
-		size_t left = 0;
-		size_t right = count;
-		size_t middle;
-		while (left < right)
-		{
-			middle = (right - left) / 2ull + left;
-			if (target >= data[middle]) left = middle + 1ull;
-			else right = middle;
-		}
-		return left;
-	}
-
-	static bool BinarySearch(size_t target, size_t count, size_t* data, size_t& pos)
-	{
-		size_t left = 0;
-		size_t right = count;
-		size_t middle;
-		while (left < right)
-		{
-			middle = (right - left) / 2ull + left;
-			if (target == data[middle]) 
-			{ 
-				pos = middle;
-				return true;
-			}
-			else if (target > data[middle]) left = middle + 1;
-			else right = middle;
-		}
-		return false;
-	}
+	static size_t UpperBound(size_t target, size_t count, size_t* data);
+	static bool BinarySearch(size_t target, size_t count, size_t* data, size_t& pos);
 
 public:
 	EmployeeDBInternal();
