@@ -59,7 +59,6 @@ DWORD Client::Operate()
 
 	std::cout << "Client [" << client_number << "]\n";
 	std::string temp_string = "";
-	size_t temp_id;
 	message buffer(message_types::FOUND, 0, Employee(0, "", 0));
 	DWORD bytes_read;
 	DWORD bytes_written;

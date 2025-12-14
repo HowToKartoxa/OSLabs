@@ -75,7 +75,7 @@ void EmployeeDB::release_shared(const size_t& index)
 {
 
 #if defined (USE_WINAPI)
-	AcquireSRWLockShared(&locks[index]);
+	ReleaseSRWLockShared(&locks[index]);
 #elif defined(USE_BOOST)
 	mutexes[index]->unlock_shared();
 #endif
@@ -86,7 +86,7 @@ void EmployeeDB::release_exclusive(const size_t& index)
 {
 
 #if defined (USE_WINAPI)
-	AcquireSRWLockShared(&locks[index]);
+	ReleaseSRWLockExclusive(&locks[index]);
 #elif defined(USE_BOOST)
 	mutexes[index]->unlock();
 #endif

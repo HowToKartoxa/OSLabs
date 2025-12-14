@@ -208,9 +208,14 @@ bool EmployeeDBInternal::Find(const size_t& id, std::fstream& file, size_t& tabl
 				file.seekg(file_pos + sizeof(Employee));
 				file.read(reinterpret_cast<char*>(&table_index), sizeof(size_t));
 				
+				delete buffer;
 				return true;
 			}
-			else return false;
+			else 
+			{ 
+				delete buffer;
+				return false; 
+			}
 		}
 		else
 		{

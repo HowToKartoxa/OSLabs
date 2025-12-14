@@ -8,7 +8,9 @@
 
 #include <windows.h>
 
-#undef max;
+#ifdef max
+	#undef max
+#endif
 
 void Server::raise(DWORD code, std::string message)
 {
@@ -56,7 +58,7 @@ Server::~Server()
 
 unsigned short Server::new_client_connection()
 {
-	unsigned short index = active_connections_data.size();
+	unsigned short index = static_cast<unsigned short>(active_connections_data.size());
 
 	active_connections_data.emplace_back(index, *database);
 	HANDLE temp_thread_handle = CreateThread(NULL, NULL, client_connection, &active_connections_data[index], NULL, NULL);
@@ -72,7 +74,7 @@ unsigned short Server::new_client_connection()
 
 unsigned short Server::new_client_process()
 {
-	unsigned short index = clients_startup_info.size();
+	unsigned short index = static_cast<unsigned short>(clients_startup_info.size());
 
 	clients_startup_info.emplace_back();
 	clients_process_info.emplace_back();

@@ -71,8 +71,8 @@ class EmployeeDBInternal
 					return;
 				}
 				entry_count++;
-				children[i]->keys.insert(it, source.id);
 				size_t dist = std::distance(children[i]->keys.begin(), it);
+				children[i]->keys.insert(it, source.id);
 				children[i]->data.insert(children[i]->data.begin() + dist, new Employee(source));
 				if (children[i]->keys.size() > max_size)
 				{
