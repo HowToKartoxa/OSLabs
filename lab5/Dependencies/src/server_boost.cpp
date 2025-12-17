@@ -19,7 +19,7 @@ Server::~Server()
 
 unsigned short Server::new_client_connection()
 {
-	unsigned short temp = active_connections.size();
+	unsigned short temp = static_cast<unsigned short>(active_connections.size());
 	boost::thread* temp_thread = new boost::thread(client_connection, temp, &output_log_mutex, database);
 	active_connections.add_thread(temp_thread);
 	return temp;
@@ -27,7 +27,7 @@ unsigned short Server::new_client_connection()
 
 unsigned short Server::new_client_process()
 {
-	unsigned short temp = client_processes_io_contexts.size();
+	unsigned short temp = static_cast<unsigned short>(client_processes_io_contexts.size());
 	client_processes_io_contexts.push_back(new boost::asio::io_context());
 	boost::process::process* temp_proc = new boost::process::process
 	(
@@ -35,7 +35,7 @@ unsigned short Server::new_client_process()
 		"Client.exe",
 		{
 			std::to_string(temp).c_str(),
-			(std::string("message_client_queue_") += std::to_string(temp)).c_str()
+			"message_queue_"
 		},
 		boost::process::v2::windows::create_new_console
 	);
@@ -94,25 +94,12 @@ void client_connection(unsigned short connection_number, boost::mutex* output_lo
 	std::cout << "CONNECTION [" << connection_number << "] initialized!\n";
 	output_log_mutex->unlock();
 
-	boost::interprocess::message_queue* mq;
-	boost::interprocess::message_queue::remove((std::string("message_client_queue_") + std::to_string(connection_number)).c_str());
+	boost::interprocess::message_queue::remove((std::string("message_queue_out_") + std::to_string(connection_number)).c_str());
+	boost::interprocess::message_queue::remove((std::string("message_queue_in_") + std::to_string(connection_number)).c_str());
 
-	try
-	{
-		mq = new boost::interprocess::message_queue(boost::interprocess::create_only, (std::string("message_client_queue_") + std::to_string(connection_number)).c_str(), 10, sizeof(message));
-	}
-	catch (boost::interprocess::interprocess_exception e)
-	{
-		output_log_mutex->lock();
-		std::cout << "CONNECTION [" << connection_number << "] terminated with error: " << e.what() << '\n';
-		output_log_mutex->unlock();
-		if (mq != nullptr)
-		{
-			mq->remove((std::string("message_client_queue_") + std::to_string(connection_number)).c_str());
-			delete mq;
-		}
-		return;
-	}
+	boost::interprocess::message_queue out(boost::interprocess::create_only, (std::string("message_queue_out_") + std::to_string(connection_number)).c_str(), 1, sizeof(message));
+	boost::interprocess::message_queue in(boost::interprocess::create_only, (std::string("message_queue_in_") + std::to_string(connection_number)).c_str(), 1, sizeof(message));
+	
 
 	message buffer(message_types::FOUND, 0, Employee(0, "", 0));
 	size_t bytes_recieved;
@@ -124,19 +111,14 @@ void client_connection(unsigned short connection_number, boost::mutex* output_lo
 	{
 		try
 		{
-			mq->receive(&buffer, sizeof(message), bytes_recieved, priority);
+			in.receive(&buffer, sizeof(message), bytes_recieved, priority);
 		}
 		catch (boost::interprocess::interprocess_exception e)
 		{
 			output_log_mutex->lock();
 			std::cout << "CONNECTION [" << connection_number << "] terminated with error: " << e.what() << '\n';
 			output_log_mutex->unlock();
-			if (mq != nullptr)
-			{
-				mq->remove((std::string("message_client_queue_") + std::to_string(connection_number)).c_str());
-				delete mq;
-			}
-			return;
+			break;
 		}
 		switch (buffer.type)
 		{
@@ -157,19 +139,14 @@ void client_connection(unsigned short connection_number, boost::mutex* output_lo
 
 				try
 				{
-					mq->send(&buffer, sizeof(message), priority);
+					out.send(&buffer, sizeof(message), priority);
 				}
 				catch (boost::interprocess::interprocess_exception e)
 				{
 					output_log_mutex->lock();
 					std::cout << "CONNECTION [" << connection_number << "] terminated with error: " << e.what() << '\n';
 					output_log_mutex->unlock();
-					if (mq != nullptr)
-					{
-						mq->remove((std::string("message_client_queue_") + std::to_string(connection_number)).c_str());
-						delete mq;
-					}
-					return;
+					operational = false;
 				}
 				break;
 			}
@@ -190,19 +167,14 @@ void client_connection(unsigned short connection_number, boost::mutex* output_lo
 
 				try
 				{
-					mq->send(&buffer, sizeof(message), priority);
+					out.send(&buffer, sizeof(message), priority);
 				}
 				catch (boost::interprocess::interprocess_exception e)
 				{
 					output_log_mutex->lock();
 					std::cout << "CONNECTION [" << connection_number << "] terminated with error: " << e.what() << '\n';
 					output_log_mutex->unlock();
-					if (mq != nullptr)
-					{
-						mq->remove((std::string("message_client_queue_") + std::to_string(connection_number)).c_str());
-						delete mq;
-					}
-					return;
+					operational = false;
 				}
 				break;
 			}
@@ -218,19 +190,14 @@ void client_connection(unsigned short connection_number, boost::mutex* output_lo
 
 				try
 				{
-					mq->send(&buffer, sizeof(message), priority);
+					out.send(&buffer, sizeof(message), priority);
 				}
 				catch (boost::interprocess::interprocess_exception e)
 				{
 					output_log_mutex->lock();
 					std::cout << "CONNECTION [" << connection_number << "] terminated with error: " << e.what() << '\n';
 					output_log_mutex->unlock();
-					if (mq != nullptr)
-					{
-						mq->remove((std::string("message_client_queue_") + std::to_string(connection_number)).c_str());
-						delete mq;
-					}
-					return;
+					operational = false;
 				}
 				break;
 			}
@@ -246,19 +213,14 @@ void client_connection(unsigned short connection_number, boost::mutex* output_lo
 			
 				try
 				{
-					mq->send(&buffer, sizeof(message), priority);
+					out.send(&buffer, sizeof(message), priority);
 				}
 				catch (boost::interprocess::interprocess_exception e)
 				{
 					output_log_mutex->lock();
 					std::cout << "CONNECTION [" << connection_number << "] terminated with error: " << e.what() << '\n';
 					output_log_mutex->unlock();
-					if (mq != nullptr)
-					{
-						mq->remove((std::string("message_client_queue_") + std::to_string(connection_number)).c_str());
-						delete mq;
-					}
-					return;
+					operational = false;
 				}
 				break;
 			}
@@ -274,19 +236,14 @@ void client_connection(unsigned short connection_number, boost::mutex* output_lo
 			
 				try
 				{
-					mq->send(&buffer, sizeof(message), priority);
+					out.send(&buffer, sizeof(message), priority);
 				}
 				catch (boost::interprocess::interprocess_exception e)
 				{
 					output_log_mutex->lock();
 					std::cout << "CONNECTION [" << connection_number << "] terminated with error: " << e.what() << '\n';
 					output_log_mutex->unlock();
-					if (mq != nullptr)
-					{
-						mq->remove((std::string("message_client_queue_") + std::to_string(connection_number)).c_str());
-						delete mq;
-					}
-					return;
+					operational = false;
 				}
 				break;
 			}
@@ -296,19 +253,14 @@ void client_connection(unsigned short connection_number, boost::mutex* output_lo
 			
 				try
 				{
-					mq->send(&buffer, sizeof(message), priority);
+					out.send(&buffer, sizeof(message), priority);
 				}
 				catch (boost::interprocess::interprocess_exception e)
 				{
 					output_log_mutex->lock();
 					std::cout << "CONNECTION [" << connection_number << "] terminated with error: " << e.what() << '\n';
 					output_log_mutex->unlock();
-					if (mq != nullptr)
-					{
-						mq->remove((std::string("message_client_queue_") + std::to_string(connection_number)).c_str());
-						delete mq;
-					}
-					return;
+					operational = false;
 				}
 
 				operational = false;
@@ -321,9 +273,7 @@ void client_connection(unsigned short connection_number, boost::mutex* output_lo
 			}
 		}
 	}
-	if (mq != nullptr)
-	{
-		mq->remove((std::string("message_client_queue_") + std::to_string(connection_number)).c_str());
-		delete mq;
-	}
+
+	boost::interprocess::message_queue::remove((std::string("message_queue_out_") + std::to_string(connection_number)).c_str());
+	boost::interprocess::message_queue::remove((std::string("message_queue_in_") + std::to_string(connection_number)).c_str());
 }

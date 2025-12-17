@@ -5,7 +5,8 @@
 
 class Client
 {
-	boost::interprocess::message_queue mq;
+	boost::interprocess::message_queue in;
+	boost::interprocess::message_queue out;
 	unsigned short client_number;
 
 public:

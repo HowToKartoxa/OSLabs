@@ -6,7 +6,10 @@
 #include <iostream>
 #include <string>
 
-Client::Client(char* mq_name, unsigned short _client_number) : mq(boost::interprocess::open_only, mq_name), client_number(_client_number) {}
+Client::Client(char* mq_name, unsigned short _client_number) : 
+	in(boost::interprocess::open_only, ((std::string(mq_name) + "out_") + std::to_string(_client_number)).c_str()), 
+	out(boost::interprocess::open_only, ((std::string(mq_name) + "in_") + std::to_string(_client_number)).c_str()),
+	client_number(_client_number) {}
 
 Client::~Client() {}
 
@@ -27,7 +30,7 @@ void Client::Operate()
 			buffer.type = message_types::SHUTDOWN;
 			try
 			{
-				mq.send(&buffer, sizeof(message), priority);
+				out.send(&buffer, sizeof(message), priority);
 			}
 			catch (boost::interprocess::interprocess_exception e)
 			{
@@ -35,7 +38,7 @@ void Client::Operate()
 			}
 			try
 			{
-				mq.receive(&buffer, sizeof(message), bytes_recieved, priority);
+				in.receive(&buffer, sizeof(message), bytes_recieved, priority);
 			}
 			catch (boost::interprocess::interprocess_exception e)
 			{
@@ -51,7 +54,7 @@ void Client::Operate()
 
 			try
 			{
-				mq.send(&buffer, sizeof(message), priority);
+				out.send(&buffer, sizeof(message), priority);
 			}
 			catch (boost::interprocess::interprocess_exception e)
 			{
@@ -59,7 +62,7 @@ void Client::Operate()
 			}
 			try
 			{
-				mq.receive(&buffer, sizeof(message), bytes_recieved, priority);
+				in.receive(&buffer, sizeof(message), bytes_recieved, priority);
 			}
 			catch (boost::interprocess::interprocess_exception e)
 			{
@@ -79,7 +82,7 @@ void Client::Operate()
 
 			try
 			{
-				mq.send(&buffer, sizeof(message), priority);
+				out.send(&buffer, sizeof(message), priority);
 			}
 			catch (boost::interprocess::interprocess_exception e)
 			{
@@ -87,7 +90,7 @@ void Client::Operate()
 			}
 			try
 			{
-				mq.receive(&buffer, sizeof(message), bytes_recieved, priority);
+				in.receive(&buffer, sizeof(message), bytes_recieved, priority);
 			}
 			catch (boost::interprocess::interprocess_exception e)
 			{
@@ -104,7 +107,7 @@ void Client::Operate()
 
 			try
 			{
-				mq.send(&buffer, sizeof(message), priority);
+				out.send(&buffer, sizeof(message), priority);
 			}
 			catch (boost::interprocess::interprocess_exception e)
 			{
@@ -112,7 +115,7 @@ void Client::Operate()
 			}
 			try
 			{
-				mq.receive(&buffer, sizeof(message), bytes_recieved, priority);
+				in.receive(&buffer, sizeof(message), bytes_recieved, priority);
 			}
 			catch (boost::interprocess::interprocess_exception e)
 			{
@@ -135,7 +138,7 @@ void Client::Operate()
 
 			try
 			{
-				mq.send(&buffer, sizeof(message), priority);
+				out.send(&buffer, sizeof(message), priority);
 			}
 			catch (boost::interprocess::interprocess_exception e)
 			{
@@ -143,7 +146,7 @@ void Client::Operate()
 			}
 			try
 			{
-				mq.receive(&buffer, sizeof(message), bytes_recieved, priority);
+				in.receive(&buffer, sizeof(message), bytes_recieved, priority);
 			}
 			catch (boost::interprocess::interprocess_exception e)
 			{
@@ -155,7 +158,7 @@ void Client::Operate()
 
 			try
 			{
-				mq.send(&buffer, sizeof(message), priority);
+				out.send(&buffer, sizeof(message), priority);
 			}
 			catch (boost::interprocess::interprocess_exception e)
 			{
@@ -163,7 +166,7 @@ void Client::Operate()
 			}
 			try
 			{
-				mq.receive(&buffer, sizeof(message), bytes_recieved, priority);
+				in.receive(&buffer, sizeof(message), bytes_recieved, priority);
 			}
 			catch (boost::interprocess::interprocess_exception e)
 			{
@@ -175,7 +178,7 @@ void Client::Operate()
 		buffer.type = message_types::SHUTDOWN;
 		try
 		{
-			mq.send(&buffer, sizeof(message), priority);
+			out.send(&buffer, sizeof(message), priority);
 		}
 		catch (boost::interprocess::interprocess_exception e)
 		{
@@ -183,7 +186,7 @@ void Client::Operate()
 		}
 		try
 		{
-			mq.receive(&buffer, sizeof(message), bytes_recieved, priority);
+			in.receive(&buffer, sizeof(message), bytes_recieved, priority);
 		}
 		catch (boost::interprocess::interprocess_exception e)
 		{
