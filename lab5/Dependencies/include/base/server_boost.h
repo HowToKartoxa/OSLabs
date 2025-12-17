@@ -28,6 +28,6 @@ public:
 	void Operate();
 };
 
-void client_connection(unsigned short connection_number, boost::mutex& output_log_mutex, EmployeeDB& database);
+void client_connection(unsigned short connection_number, boost::mutex* output_log_mutex, EmployeeDB* database);
 
 #endif

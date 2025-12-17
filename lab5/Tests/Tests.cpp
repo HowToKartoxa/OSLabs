@@ -8,6 +8,9 @@
 #include <fstream>
 
 #include <boost/test/included/unit_test.hpp>
+
+#if defined(USE_WINAPI)
+
 #include <windows.h>
 
 DWORD WINAPI test_set(LPVOID params)
@@ -27,6 +30,26 @@ DWORD WINAPI test_get(LPVOID params)
 	temp->WGetShared(1, temp_employee, locked_at);
 	return 0ul;
 }
+
+#elif defined(USE_BOOST)
+
+#include <boost/thread.hpp>
+
+void test_set(EmployeeDB& database)
+{
+	Employee temp_employee;
+	size_t locked_at, found_at;
+	database.WGetExclusive(1, temp_employee, locked_at, found_at);
+}
+
+void test_get(EmployeeDB& database)
+{
+	Employee temp_employee;
+	size_t locked_at;
+	database.WGetShared(1, temp_employee, locked_at);
+}
+
+#endif
 
 BOOST_AUTO_TEST_SUITE(employee_db_test)
 
@@ -159,6 +182,9 @@ BOOST_AUTO_TEST_CASE(employee_db_set_lock)
 	size_t locked_at;
 	DWORD id;
 	database.WGetShared(1, temp_employee, locked_at);
+
+#if defined(USE_WINAPI)
+
 	HANDLE thread = CreateThread(NULL, NULL, test_set, &database, NULL, &id);
 	BOOST_TEST(thread != nullptr);
 	if (thread != NULL)
@@ -166,6 +192,15 @@ BOOST_AUTO_TEST_CASE(employee_db_set_lock)
 		DWORD res = WaitForSingleObject(thread, 2000);
 		BOOST_TEST(res == WAIT_TIMEOUT);
 	}
+
+#elif defined(USE_BOOST)
+
+	boost::thread thread(test_set, database);
+	bool res = thread.timed_join(boost::chrono::seconds(2));
+	BOOST_TEST(res == false);
+
+#endif
+	
 }
 
 BOOST_AUTO_TEST_CASE(employee_db_get_lock)
@@ -180,6 +215,9 @@ BOOST_AUTO_TEST_CASE(employee_db_get_lock)
 	size_t locked_at, found_at;
 	DWORD id;
 	database.WGetExclusive(1, temp_employee, locked_at, found_at);
+
+#if defined(USE_WINAPI)
+
 	HANDLE thread = CreateThread(NULL, NULL, test_get, &database, NULL, &id);
 	BOOST_TEST(thread != nullptr);
 	if (thread != NULL)
@@ -187,5 +225,14 @@ BOOST_AUTO_TEST_CASE(employee_db_get_lock)
 		DWORD res = WaitForSingleObject(thread, 2000);
 		BOOST_TEST(res == WAIT_TIMEOUT);
 	}
+
+#elif defined(USE_BOOST)
+
+	boost::thread thread(test_get, database);
+	bool res = thread.timed_join(boost::chrono::seconds(2));
+	BOOST_TEST(res == false);
+
+#endif
+
 }
 BOOST_AUTO_TEST_SUITE_END()
